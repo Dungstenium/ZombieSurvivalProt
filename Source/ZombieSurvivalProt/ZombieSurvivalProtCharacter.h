@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Runtime/Engine/Classes/Components/TimelineComponent.h"
 #include "ZombieSurvivalProtCharacter.generated.h"
 
 class UInputComponent;
@@ -120,7 +121,31 @@ protected:
 	TouchData	TouchItem;
 	
 	void PlayerCrouch();
+
 	void PlayerUncrouch();
+
+	class UTimelineComponent* TimeLine;
+
+	UPROPERTY(EditAnywhere)
+		class UCurveFloat* TimelineCurve;
+
+	UPROPERTY()
+		float StandingHeight { 0 };
+
+	UPROPERTY()
+		float CrouchedHeight { 0 };
+
+	UFUNCTION()
+		void TimeLineFloatReturn(float Value);
+
+	UFUNCTION()
+		void OnTimeLineFinished();
+
+	//Declare our delegate function to be binded with TimeLineFloatReturn
+	FOnTimelineFloat InterpFunction{};
+
+	//Declare our delegate function to be binded with OnTimeLineFinished()
+	FOnTimelineEvent TimeLineFinished{};
 
 protected:
 	// APawn interface

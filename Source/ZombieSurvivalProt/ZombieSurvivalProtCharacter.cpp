@@ -9,6 +9,7 @@
 #include "GameFramework/InputSettings.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "Components/TimelineComponent.h"
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 
@@ -19,6 +20,12 @@ DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
 AZombieSurvivalProtCharacter::AZombieSurvivalProtCharacter()
 {
+
+	TimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimeLine"));
+
+	InterpFunction.BindUFunction(this, FName("TimeLineFloatReturn"));
+	TimeLineFinished.BindUFunction(this, FName("OnTimeLineFinished"));
+
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
 
@@ -103,6 +110,28 @@ void AZombieSurvivalProtCharacter::BeginPlay()
 		VR_Gun->SetHiddenInGame(true, true);
 		Mesh1P->SetHiddenInGame(false, true);
 	}
+	
+	if (TimelineCurve)
+	{
+		TimeLine->AddInterpFloat(TimelineCurve, InterpFunction, FName("Alpha"));
+
+		TimeLine->SetTimelineFinishedFunc(TimeLineFinished);
+
+		StandingHeight = 96.0f;
+		CrouchedHeight = 30.0f;
+
+		TimeLine->SetLooping(false);
+	}
+}
+
+void AZombieSurvivalProtCharacter::TimeLineFloatReturn(float Value)
+{
+	GetCapsuleComponent()->SetCapsuleHalfHeight(FMath::Lerp(StandingHeight, CrouchedHeight, Value));
+}
+
+void AZombieSurvivalProtCharacter::OnTimeLineFinished()
+{
+
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -222,14 +251,23 @@ void AZombieSurvivalProtCharacter::EndTouch(const ETouchIndex::Type FingerIndex,
 
 void AZombieSurvivalProtCharacter::PlayerCrouch()
 {
-	Crouch();
-	UE_LOG(LogTemp, Warning, TEXT("crouching"))
+	//Crouch();
+
+	TimeLine->Play();
 }
 
 void AZombieSurvivalProtCharacter::PlayerUncrouch()
 {
-	UnCrouch();
-	UE_LOG(LogTemp, Warning, TEXT("uncrouching"))
+	//UnCrouch();
+
+	if (TimeLine->GetPlaybackPosition() <= 0.0f)
+	{
+		TimeLine->Play();
+	}
+	else
+	{
+		TimeLine->Reverse();
+	}
 }
 
 //Commenting this section out to be consistent with FPS BP template.
