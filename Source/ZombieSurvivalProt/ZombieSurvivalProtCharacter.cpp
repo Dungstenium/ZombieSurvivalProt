@@ -117,6 +117,10 @@ void AZombieSurvivalProtCharacter::SetupPlayerInputComponent(class UInputCompone
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
+	// Bind chrouch events
+	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AZombieSurvivalProtCharacter::PlayerCrouch);
+	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AZombieSurvivalProtCharacter::PlayerUncrouch);
+
 	// Bind fire event
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AZombieSurvivalProtCharacter::OnFire);
 
@@ -214,6 +218,18 @@ void AZombieSurvivalProtCharacter::EndTouch(const ETouchIndex::Type FingerIndex,
 		return;
 	}
 	TouchItem.bIsPressed = false;
+}
+
+void AZombieSurvivalProtCharacter::PlayerCrouch()
+{
+	Crouch();
+	UE_LOG(LogTemp, Warning, TEXT("crouching"))
+}
+
+void AZombieSurvivalProtCharacter::PlayerUncrouch()
+{
+	UnCrouch();
+	UE_LOG(LogTemp, Warning, TEXT("uncrouching"))
 }
 
 //Commenting this section out to be consistent with FPS BP template.
