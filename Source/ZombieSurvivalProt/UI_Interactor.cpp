@@ -1,41 +1,59 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ // Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "UI_Interactor.h"
+#include "DrawDebugHelpers.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "Interactable.h"
 
 #define OUT
 
-// Sets default values for this component's properties
 UUI_Interactor::UUI_Interactor()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
 
-
-// Called when the game starts
 void UUI_Interactor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
-	
 }
 
-
-// Called every frame
 void UUI_Interactor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(OUT PlayerViewPointLocation, OUT PlayerViewPointRotation);
-	
-	UE_LOG(LogTemp, Warning, TEXT("%s & %s"), *PlayerViewPointLocation.ToString(), *PlayerViewPointRotation.ToString())
-	// ...
-}
 
+	FVector LineTraceEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * LineRange;
+
+	DrawDebugLine(
+		GetWorld(),
+		PlayerViewPointLocation, 
+		LineTraceEnd,
+		FColor::Blue,
+		false,
+		0.0f, 
+		0, 
+		5.0f);
+
+	FHitResult Hit;
+	FCollisionQueryParams TraceParams(FName(""), false, GetOwner());
+	GetWorld()->LineTraceSingleByObjectType(
+		OUT Hit,
+		PlayerViewPointLocation,
+		LineTraceEnd,
+		FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody),
+		TraceParams);
+
+	AActor* ActorHit = Hit.GetActor();
+
+	if (ActorHit)
+	{
+		if (ActorHit->IsA<AInteractable>())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("nigg %s"), *ActorHit->GetName())
+		}
+	}
+}

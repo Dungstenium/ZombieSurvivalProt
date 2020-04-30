@@ -12,20 +12,20 @@ class ZOMBIESURVIVALPROT_API UUI_Interactor : public UActorComponent
 {
 	GENERATED_BODY()
 
+	UPROPERTY(EditAnywhere)
+		float LineRange = 200.0f;
+
+
 public:	
-	// Sets default values for this component's properties
 	UUI_Interactor();
 
 protected:
-	// Called when the game starts
 	virtual void BeginPlay() override;
 
 	FVector PlayerViewPointLocation;
 	FRotator PlayerViewPointRotation;
 
 public:	
-	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
 		
 };
