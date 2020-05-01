@@ -37,6 +37,8 @@ public:
 
 	AInteractable();
 
+	void SetPressPopUpVisible(bool State);
+
 protected:
 
 	virtual void BeginPlay() override;

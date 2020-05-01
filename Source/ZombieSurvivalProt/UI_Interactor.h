@@ -15,6 +15,7 @@ class ZOMBIESURVIVALPROT_API UUI_Interactor : public UActorComponent
 	UPROPERTY(EditAnywhere)
 		float LineRange = 200.0f;
 
+	class AInteractable* InteractingActor = nullptr;
 
 public:	
 	UUI_Interactor();
@@ -24,6 +25,8 @@ protected:
 
 	FVector PlayerViewPointLocation;
 	FRotator PlayerViewPointRotation;
+
+	bool bIsPopUpVisible{ false };
 
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;

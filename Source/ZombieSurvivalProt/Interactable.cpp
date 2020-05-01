@@ -31,13 +31,16 @@ void AInteractable::BeginPlay()
 	
 	Trigger->OnComponentBeginOverlap.AddDynamic(this, &AInteractable::OnOverlapBegin);
 	Trigger->OnComponentEndOverlap.AddDynamic(this, &AInteractable::OnOverlapEnd);
+	
+	PressPopUp->SetVisibility(false);
+	InteractableVisualizer->SetVisibility(false);
 }
 
 void AInteractable::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor->IsA<AZombieSurvivalProtCharacter>())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Got In"));
+		InteractableVisualizer->SetVisibility(true);
 	}
 }
 
@@ -45,6 +48,11 @@ void AInteractable::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Ot
 {
 	if (OtherActor->IsA<AZombieSurvivalProtCharacter>())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Got Out"));
+		InteractableVisualizer->SetVisibility(false);
 	}
+}
+
+void AInteractable::SetPressPopUpVisible(bool State)
+{
+	PressPopUp->SetVisibility(State);
 }

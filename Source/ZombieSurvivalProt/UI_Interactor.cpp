@@ -53,7 +53,24 @@ void UUI_Interactor::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 	{
 		if (ActorHit->IsA<AInteractable>())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("nigg %s"), *ActorHit->GetName())
+			InteractingActor = Cast<AInteractable>(ActorHit);
+
+			if (!bIsPopUpVisible)
+			{
+				bIsPopUpVisible = true;
+				InteractingActor->SetPressPopUpVisible(bIsPopUpVisible);
+			}
+
+			UE_LOG(LogTemp, Warning, TEXT("Looking at: %s"), *ActorHit->GetName())
+		}
+	}
+	else
+	{
+		if (bIsPopUpVisible && InteractingActor != nullptr)
+		{
+			bIsPopUpVisible = false;
+			InteractingActor->SetPressPopUpVisible(bIsPopUpVisible);
+			InteractingActor = nullptr;
 		}
 	}
 }
