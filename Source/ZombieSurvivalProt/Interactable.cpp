@@ -2,9 +2,9 @@
 
 
 #include "Interactable.h"
+#include "Components/BillboardComponent.h" 
 #include "Components/BoxComponent.h" 
 #include "Components/StaticMeshComponent.h"
-//#include "PaperSpriteComponent.h"
 #include "ZombieSurvivalProtCharacter.h"
 
 
@@ -17,6 +17,12 @@ AInteractable::AInteractable()
 
 	Trigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger"));
 	Trigger->SetupAttachment(StaticMesh);
+
+	PressPopUp = CreateDefaultSubobject<UBillboardComponent>(TEXT("PopUp"));
+	PressPopUp->SetupAttachment(RootComponent);
+
+	InteractableVisualizer = CreateDefaultSubobject<UBillboardComponent>(TEXT("Visualizer"));
+	InteractableVisualizer->SetupAttachment(RootComponent);
 }
 
 void AInteractable::BeginPlay()
