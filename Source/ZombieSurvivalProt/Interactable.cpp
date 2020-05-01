@@ -2,30 +2,43 @@
 
 
 #include "Interactable.h"
-#include "Components/StaticMeshComponent.h" 
+#include "Components/BoxComponent.h" 
+#include "Components/StaticMeshComponent.h"
+//#include "PaperSpriteComponent.h"
+#include "ZombieSurvivalProtCharacter.h"
 
-// Sets default values
+
 AInteractable::AInteractable()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	RootComponent = StaticMesh;
 
+	Trigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger"));
+	Trigger->SetupAttachment(StaticMesh);
 }
 
-// Called when the game starts or when spawned
 void AInteractable::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	Trigger->OnComponentBeginOverlap.AddDynamic(this, &AInteractable::OnOverlapBegin);
+	Trigger->OnComponentEndOverlap.AddDynamic(this, &AInteractable::OnOverlapEnd);
 }
 
-// Called every frame
-void AInteractable::Tick(float DeltaTime)
+void AInteractable::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	Super::Tick(DeltaTime);
-
+	if (OtherActor->IsA<AZombieSurvivalProtCharacter>())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Got In"));
+	}
 }
 
+void AInteractable::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor->IsA<AZombieSurvivalProtCharacter>())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Got Out"));
+	}
+}
