@@ -1,17 +1,18 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "ZombieSurvivalProtCharacter.h"
-#include "ZombieSurvivalProtProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
+#include "Components/TimelineComponent.h"
+#include "GameFramework/CharacterMovementComponent.h" 
 #include "GameFramework/InputSettings.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
-#include "Components/TimelineComponent.h"
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
+#include "ZombieSurvivalProtProjectile.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -127,6 +128,7 @@ void AZombieSurvivalProtCharacter::BeginPlay()
 void AZombieSurvivalProtCharacter::TimeLineFloatReturn(float Value)
 {
 	GetCapsuleComponent()->SetCapsuleHalfHeight(FMath::Lerp(StandingHeight, CrouchedHeight, Value));
+	GetCharacterMovement()->MaxWalkSpeed = FMath::Lerp(MaxMoveSpeed, MaxCrouchedSpeed, Value);
 }
 
 void AZombieSurvivalProtCharacter::OnTimeLineFinished()
@@ -251,15 +253,11 @@ void AZombieSurvivalProtCharacter::EndTouch(const ETouchIndex::Type FingerIndex,
 
 void AZombieSurvivalProtCharacter::PlayerCrouch()
 {
-	//Crouch();
-
 	TimeLine->Play();
 }
 
 void AZombieSurvivalProtCharacter::PlayerUncrouch()
 {
-	//UnCrouch();
-
 	if (TimeLine->GetPlaybackPosition() <= 0.0f)
 	{
 		TimeLine->Play();

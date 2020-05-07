@@ -135,6 +135,12 @@ protected:
 	UPROPERTY()
 		float CrouchedHeight { 0 };
 
+	UPROPERTY(EditAnywhere)
+		float MaxMoveSpeed = 600.0f;
+
+	UPROPERTY(EditAnywhere)
+		float MaxCrouchedSpeed = 240.0f;
+
 	UFUNCTION()
 		void TimeLineFloatReturn(float Value);
 
