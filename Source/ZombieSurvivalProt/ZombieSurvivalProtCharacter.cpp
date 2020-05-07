@@ -24,8 +24,10 @@ AZombieSurvivalProtCharacter::AZombieSurvivalProtCharacter()
 
 	TimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimeLine"));
 
-	InterpFunction.BindUFunction(this, FName("TimeLineFloatReturn"));
+	InterpCrouchFunction.BindUFunction(this, FName("TimeLineFloatReturn"));
 	TimeLineFinished.BindUFunction(this, FName("OnTimeLineFinished"));
+
+	InterpRunFunction.BindUFunction(this, FName("RunTimeline"));
 
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
@@ -114,7 +116,7 @@ void AZombieSurvivalProtCharacter::BeginPlay()
 	
 	if (TimelineCurve)
 	{
-		TimeLine->AddInterpFloat(TimelineCurve, InterpFunction, FName("Alpha"));
+		TimeLine->AddInterpFloat(TimelineCurve, InterpCrouchFunction, FName("Alpha"));
 
 		TimeLine->SetTimelineFinishedFunc(TimeLineFinished);
 
@@ -127,17 +129,27 @@ void AZombieSurvivalProtCharacter::BeginPlay()
 
 void AZombieSurvivalProtCharacter::TimeLineFloatReturn(float Value)
 {
-	GetCapsuleComponent()->SetCapsuleHalfHeight(FMath::Lerp(StandingHeight, CrouchedHeight, Value));
-	GetCharacterMovement()->MaxWalkSpeed = FMath::Lerp(MaxMoveSpeed, MaxCrouchedSpeed, Value);
+	if ((bPlayerCrouched || (!bPlayerCrouched && GetCapsuleComponent()->GetScaledCapsuleHalfHeight() < StandingHeight)))
+	{
+		GetCapsuleComponent()->SetCapsuleHalfHeight(FMath::Lerp(StandingHeight, CrouchedHeight, Value));
+		GetCharacterMovement()->MaxWalkSpeed = FMath::Lerp(MaxMoveSpeed, MaxCrouchedSpeed, Value);
+	}
+	else
+	{
+		GetCapsuleComponent()->SetCapsuleHalfHeight(FMath::Lerp(GetCapsuleComponent()->GetScaledCapsuleHalfHeight(), StandingHeight, Value));
+		GetCharacterMovement()->MaxWalkSpeed = FMath::Lerp(MaxMoveSpeed, 900.0f, Value);
+	}
+}
+
+void AZombieSurvivalProtCharacter::RunTimeline(float Value)
+{
+	//GetCharacterMovement()->MaxWalkSpeed = FMath::Lerp(MaxMoveSpeed, 900.0f, Value);
 }
 
 void AZombieSurvivalProtCharacter::OnTimeLineFinished()
 {
 
 }
-
-//////////////////////////////////////////////////////////////////////////
-// Input
 
 void AZombieSurvivalProtCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
@@ -151,6 +163,10 @@ void AZombieSurvivalProtCharacter::SetupPlayerInputComponent(class UInputCompone
 	// Bind chrouch events
 	PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &AZombieSurvivalProtCharacter::PlayerCrouch);
 	PlayerInputComponent->BindAction("Crouch", IE_Released, this, &AZombieSurvivalProtCharacter::PlayerUncrouch);
+
+	// Bind run events
+	PlayerInputComponent->BindAction("Run", IE_Pressed, this, &AZombieSurvivalProtCharacter::StartRunning);
+	PlayerInputComponent->BindAction("Run", IE_Released, this, &AZombieSurvivalProtCharacter::StopRunning);
 
 	// Bind fire event
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AZombieSurvivalProtCharacter::OnFire);
@@ -253,19 +269,51 @@ void AZombieSurvivalProtCharacter::EndTouch(const ETouchIndex::Type FingerIndex,
 
 void AZombieSurvivalProtCharacter::PlayerCrouch()
 {
-	TimeLine->Play();
+	TimeLine->AddInterpFloat(TimelineCurve, InterpCrouchFunction, FName("Alpha"));
+
+	bPlayerCrouched = true;
+
+	TimeLine->PlayFromStart();
 }
 
 void AZombieSurvivalProtCharacter::PlayerUncrouch()
 {
+	TimeLine->AddInterpFloat(TimelineCurve, InterpCrouchFunction, FName("Alpha"));
+
 	if (TimeLine->GetPlaybackPosition() <= 0.0f)
 	{
-		TimeLine->Play();
+		TimeLine->PlayFromStart();
 	}
 	else
 	{
 		TimeLine->Reverse();
 	}
+
+	bPlayerCrouched = false;
+}
+
+void AZombieSurvivalProtCharacter::StartRunning()
+{
+	TimeLine->AddInterpFloat(TimelineCurve, InterpRunFunction, FName("Alpha"));
+
+	bPlayerRunning = true;
+	TimeLine->PlayFromStart();
+}
+
+void AZombieSurvivalProtCharacter::StopRunning()
+{
+	TimeLine->AddInterpFloat(TimelineCurve, InterpRunFunction, FName("Alpha"));
+
+	if (TimeLine->GetPlaybackPosition() <= 0.0f)
+	{
+		TimeLine->PlayFromStart();
+	}
+	else
+	{
+		TimeLine->Reverse();
+	}
+
+	bPlayerRunning = false;
 }
 
 //Commenting this section out to be consistent with FPS BP template.

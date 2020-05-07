@@ -46,6 +46,10 @@ class AZombieSurvivalProtCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UMotionControllerComponent* L_MotionController;
 
+	bool bPlayerCrouched = false;
+
+	bool bPlayerRunning = false;
+
 public:
 	AZombieSurvivalProtCharacter();
 
@@ -121,8 +125,10 @@ protected:
 	TouchData	TouchItem;
 	
 	void PlayerCrouch();
-
 	void PlayerUncrouch();
+
+	void StartRunning();
+	void StopRunning();
 
 	class UTimelineComponent* TimeLine;
 
@@ -145,10 +151,15 @@ protected:
 		void TimeLineFloatReturn(float Value);
 
 	UFUNCTION()
+		void RunTimeline(float Value);
+
+	UFUNCTION()
 		void OnTimeLineFinished();
 
 	//Declare our delegate function to be binded with TimeLineFloatReturn
-	FOnTimelineFloat InterpFunction{};
+	FOnTimelineFloat InterpCrouchFunction{};
+
+	FOnTimelineFloat InterpRunFunction{};
 
 	//Declare our delegate function to be binded with OnTimeLineFinished()
 	FOnTimelineEvent TimeLineFinished{};
