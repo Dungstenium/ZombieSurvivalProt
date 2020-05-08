@@ -112,6 +112,8 @@ void AZombieSurvivalProtCharacter::BeginPlay()
 		Mesh1P->SetHiddenInGame(false, true);
 	}
 	
+	AmmoCounter = MaxAmmo;
+
 	if (TimelineCurve)
 	{
 		TimeLine->AddInterpFloat(TimelineCurve, InterpCrouchFunction, FName("Alpha"));
@@ -184,80 +186,102 @@ void AZombieSurvivalProtCharacter::SetupPlayerInputComponent(class UInputCompone
 
 void AZombieSurvivalProtCharacter::OnFire()
 {
-	// try and fire a projectile
-	if (ProjectileClass != NULL)
+	if (bHasAmmo)
 	{
-		UWorld* const World = GetWorld();
-		if (World != NULL)
+		ReduceAmmoPerShot();
+
+		// try and fire a projectile
+		if (ProjectileClass != NULL)
 		{
-			if (bUsingMotionControllers)
+			UWorld* const World = GetWorld();
+			if (World != NULL)
 			{
-				const FRotator SpawnRotation = VR_MuzzleLocation->GetComponentRotation();
-				const FVector SpawnLocation = VR_MuzzleLocation->GetComponentLocation();
-				World->SpawnActor<AZombieSurvivalProtProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
+				if (bUsingMotionControllers)
+				{
+					const FRotator SpawnRotation = VR_MuzzleLocation->GetComponentRotation();
+					const FVector SpawnLocation = VR_MuzzleLocation->GetComponentLocation();
+					World->SpawnActor<AZombieSurvivalProtProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
+				}
+				else
+				{
+					const FRotator SpawnRotation = GetControlRotation();
+					// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
+					const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
+
+					//Set Spawn Collision Handling Override
+					FActorSpawnParameters ActorSpawnParams;
+					ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+
+					// spawn the projectile at the muzzle
+					World->SpawnActor<AZombieSurvivalProtProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+				}
 			}
-			else
+		}
+
+		// try and play the sound if specified
+		if (FireSound != NULL)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+		}
+
+		// try and play a firing animation if specified
+		if (FireAnimation != NULL)
+		{
+			// Get the animation object for the arms mesh
+			UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
+			if (AnimInstance != NULL)
 			{
-				const FRotator SpawnRotation = GetControlRotation();
-				// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-				const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
-
-				//Set Spawn Collision Handling Override
-				FActorSpawnParameters ActorSpawnParams;
-				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-
-				// spawn the projectile at the muzzle
-				World->SpawnActor<AZombieSurvivalProtProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
+				AnimInstance->Montage_Play(FireAnimation, 1.f);
 			}
 		}
 	}
-
-	// try and play the sound if specified
-	if (FireSound != NULL)
+	else
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+		Reload();
 	}
+}
 
-	// try and play a firing animation if specified
-	if (FireAnimation != NULL)
+void AZombieSurvivalProtCharacter::ReduceAmmoPerShot()
+{
+	--AmmoCounter;
+
+	UE_LOG(LogTemp, Warning, TEXT("ActualAmmo: %i ReserveAmmo: %i"), AmmoCounter, ReserveAmmo);
+
+	if (AmmoCounter <= 0)
 	{
-		// Get the animation object for the arms mesh
-		UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
-		if (AnimInstance != NULL)
+		bHasAmmo = false;
+	}
+}
+
+void AZombieSurvivalProtCharacter::Reload()
+{
+	if (ReserveAmmo > 0)
+	{
+		int32 AmmoDifference = MaxAmmo - AmmoCounter;
+		
+		if (AmmoDifference >= ReserveAmmo)
 		{
-			AnimInstance->Montage_Play(FireAnimation, 1.f);
+			AmmoCounter += ReserveAmmo;
+			ReserveAmmo = 0;
 		}
+		else
+		{
+			AmmoCounter += AmmoDifference;
+			ReserveAmmo -= AmmoDifference;
+		}
+
+		bHasAmmo = true;
+		UE_LOG(LogTemp, Warning, TEXT("REALOADED: ActualAmmo: %i ReserveAmmo: %i"), AmmoCounter, ReserveAmmo);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("OUT OF AMMO"));
 	}
 }
 
 void AZombieSurvivalProtCharacter::OnResetVR()
 {
 	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
-}
-
-void AZombieSurvivalProtCharacter::BeginTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
-{
-	if (TouchItem.bIsPressed == true)
-	{
-		return;
-	}
-	if ((FingerIndex == TouchItem.FingerIndex) && (TouchItem.bMoved == false))
-	{
-		OnFire();
-	}
-	TouchItem.bIsPressed = true;
-	TouchItem.FingerIndex = FingerIndex;
-	TouchItem.Location = Location;
-	TouchItem.bMoved = false;
-}
-
-void AZombieSurvivalProtCharacter::EndTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
-{
-	if (TouchItem.bIsPressed == false)
-	{
-		return;
-	}
-	TouchItem.bIsPressed = false;
 }
 
 void AZombieSurvivalProtCharacter::PlayerCrouch()
@@ -304,8 +328,75 @@ void AZombieSurvivalProtCharacter::StopRunning()
 	bPlayerRunning = false;
 }
 
-//Commenting this section out to be consistent with FPS BP template.
-//This allows the user to turn without using the right virtual joystick
+void AZombieSurvivalProtCharacter::MoveForward(float Value)
+{
+	if (Value != 0.0f)
+	{
+		AddMovementInput(GetActorForwardVector(), Value);
+	}
+}
+
+void AZombieSurvivalProtCharacter::MoveRight(float Value)
+{
+	if (Value != 0.0f)
+	{
+		AddMovementInput(GetActorRightVector(), Value);
+	}
+}
+
+void AZombieSurvivalProtCharacter::TurnAtRate(float Rate)
+{
+	// calculate delta for this frame from the rate information
+	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
+}
+
+void AZombieSurvivalProtCharacter::LookUpAtRate(float Rate)
+{
+	// calculate delta for this frame from the rate information
+	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+}
+
+#pragma region TOUCHSTUFF
+
+bool AZombieSurvivalProtCharacter::EnableTouchscreenMovement(class UInputComponent* PlayerInputComponent)
+{
+	if (FPlatformMisc::SupportsTouchInput() || GetDefault<UInputSettings>()->bUseMouseForTouch)
+	{
+		PlayerInputComponent->BindTouch(EInputEvent::IE_Pressed, this, &AZombieSurvivalProtCharacter::BeginTouch);
+		PlayerInputComponent->BindTouch(EInputEvent::IE_Released, this, &AZombieSurvivalProtCharacter::EndTouch);
+
+		//Commenting this out to be more consistent with FPS BP template.
+		//PlayerInputComponent->BindTouch(EInputEvent::IE_Repeat, this, &AZombieSurvivalProtCharacter::TouchUpdate);
+		return true;
+	}
+	
+	return false;
+}
+
+void AZombieSurvivalProtCharacter::BeginTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
+{
+	if (TouchItem.bIsPressed == true)
+	{
+		return;
+	}
+	if ((FingerIndex == TouchItem.FingerIndex) && (TouchItem.bMoved == false))
+	{
+		OnFire();
+	}
+	TouchItem.bIsPressed = true;
+	TouchItem.FingerIndex = FingerIndex;
+	TouchItem.Location = Location;
+	TouchItem.bMoved = false;
+}
+
+void AZombieSurvivalProtCharacter::EndTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
+{
+	if (TouchItem.bIsPressed == false)
+	{
+		return;
+	}
+	TouchItem.bIsPressed = false;
+}
 
 //void AZombieSurvivalProtCharacter::TouchUpdate(const ETouchIndex::Type FingerIndex, const FVector Location)
 //{
@@ -342,45 +433,6 @@ void AZombieSurvivalProtCharacter::StopRunning()
 //	}
 //}
 
-void AZombieSurvivalProtCharacter::MoveForward(float Value)
-{
-	if (Value != 0.0f)
-	{
-		AddMovementInput(GetActorForwardVector(), Value);
-	}
-}
-
-void AZombieSurvivalProtCharacter::MoveRight(float Value)
-{
-	if (Value != 0.0f)
-	{
-		AddMovementInput(GetActorRightVector(), Value);
-	}
-}
-
-void AZombieSurvivalProtCharacter::TurnAtRate(float Rate)
-{
-	// calculate delta for this frame from the rate information
-	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
-}
-
-void AZombieSurvivalProtCharacter::LookUpAtRate(float Rate)
-{
-	// calculate delta for this frame from the rate information
-	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
-}
-
-bool AZombieSurvivalProtCharacter::EnableTouchscreenMovement(class UInputComponent* PlayerInputComponent)
-{
-	if (FPlatformMisc::SupportsTouchInput() || GetDefault<UInputSettings>()->bUseMouseForTouch)
-	{
-		PlayerInputComponent->BindTouch(EInputEvent::IE_Pressed, this, &AZombieSurvivalProtCharacter::BeginTouch);
-		PlayerInputComponent->BindTouch(EInputEvent::IE_Released, this, &AZombieSurvivalProtCharacter::EndTouch);
-
-		//Commenting this out to be more consistent with FPS BP template.
-		//PlayerInputComponent->BindTouch(EInputEvent::IE_Repeat, this, &AZombieSurvivalProtCharacter::TouchUpdate);
-		return true;
-	}
-	
-	return false;
-}
+//Commenting this section out to be consistent with FPS BP template.
+//This allows the user to turn without using the right virtual joystick
+#pragma endregion

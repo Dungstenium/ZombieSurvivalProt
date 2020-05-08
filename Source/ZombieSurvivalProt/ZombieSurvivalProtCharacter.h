@@ -14,6 +14,8 @@ class AZombieSurvivalProtCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
+private:
+
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
 	class USkeletalMeshComponent* Mesh1P;
@@ -47,16 +49,15 @@ class AZombieSurvivalProtCharacter : public ACharacter
 	class UMotionControllerComponent* L_MotionController;
 
 	bool bPlayerCrouched = false;
-
 	bool bPlayerRunning = false;
+	bool bHasAmmo = true;
+
+	int32 MaxAmmo{ 30 };
 
 public:
+	
 	AZombieSurvivalProtCharacter();
-
-protected:
-	virtual void BeginPlay();
-
-public:
+	
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseTurnRate;
@@ -85,10 +86,20 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint32 bUsingMotionControllers : 1;
 
+	UPROPERTY(BlueprintReadOnly)
+		int32 AmmoCounter{0};
+
+	UPROPERTY(BlueprintReadOnly)
+		int32 ReserveAmmo{60};
+
 protected:
 	
+	virtual void BeginPlay();
+
 	/** Fires a projectile. */
 	void OnFire();
+
+	void ReduceAmmoPerShot();
 
 	/** Resets HMD orientation and position in VR. */
 	void OnResetVR();
@@ -130,6 +141,8 @@ protected:
 	void StartRunning();
 	void StopRunning();
 
+	void Reload();
+
 	class UTimelineComponent* TimeLine;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -167,7 +180,6 @@ protected:
 	//Declare our delegate function to be binded with OnTimeLineFinished()
 	FOnTimelineEvent TimeLineFinished{};
 
-protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End of APawn interface
