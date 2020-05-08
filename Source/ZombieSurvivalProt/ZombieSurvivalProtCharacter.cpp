@@ -245,8 +245,6 @@ void AZombieSurvivalProtCharacter::ReduceAmmoPerShot()
 {
 	--AmmoCounter;
 
-	UE_LOG(LogTemp, Warning, TEXT("ActualAmmo: %i ReserveAmmo: %i"), AmmoCounter, ReserveAmmo);
-
 	if (AmmoCounter <= 0)
 	{
 		bHasAmmo = false;
@@ -271,11 +269,10 @@ void AZombieSurvivalProtCharacter::Reload()
 		}
 
 		bHasAmmo = true;
-		UE_LOG(LogTemp, Warning, TEXT("REALOADED: ActualAmmo: %i ReserveAmmo: %i"), AmmoCounter, ReserveAmmo);
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("OUT OF AMMO"));
+
 	}
 }
 

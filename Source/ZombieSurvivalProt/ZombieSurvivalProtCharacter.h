@@ -95,8 +95,7 @@ public:
 protected:
 	
 	virtual void BeginPlay();
-
-	/** Fires a projectile. */
+		
 	void OnFire();
 
 	void ReduceAmmoPerShot();
@@ -104,10 +103,8 @@ protected:
 	/** Resets HMD orientation and position in VR. */
 	void OnResetVR();
 
-	/** Handles moving forward/backward */
 	void MoveForward(float Val);
 
-	/** Handles stafing movement, left and right */
 	void MoveRight(float Val);
 
 	/**
