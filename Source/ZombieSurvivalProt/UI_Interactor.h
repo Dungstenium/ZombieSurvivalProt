@@ -17,6 +17,8 @@ class ZOMBIESURVIVALPROT_API UUI_Interactor : public UActorComponent
 
 	class AInteractable* InteractingActor = nullptr;
 
+	bool bActivateDebugRay = false;
+
 public:	
 	UUI_Interactor();
 

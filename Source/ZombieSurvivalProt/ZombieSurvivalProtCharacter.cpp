@@ -10,7 +10,9 @@
 #include "GameFramework/InputSettings.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "LifeManager.h"
 #include "MotionControllerComponent.h"
+#include "UI_Interactor.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 #include "ZombieSurvivalProtProjectile.h"
 
@@ -21,28 +23,24 @@ DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
 AZombieSurvivalProtCharacter::AZombieSurvivalProtCharacter()
 {
-
 	TimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimeLine"));
 
 	InterpCrouchFunction.BindUFunction(this, FName("TimeLineFloatReturn"));
 	TimeLineFinished.BindUFunction(this, FName("OnTimeLineFinished"));
 
-	InterpRunFunction.BindUFunction(this, FName("RunTimeline"));
+	UI_Interactor = CreateDefaultSubobject<UUI_Interactor>(TEXT("UI Interactor"));
+	LifeManager = CreateDefaultSubobject<ULifeManager>(TEXT("Life Manager"));
 
-	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
 
-	// set our turn rates for input
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
 
-	// Create a CameraComponent	
 	FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
 	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
 	FirstPersonCameraComponent->RelativeLocation = FVector(-39.56f, 1.75f, 64.f); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
 
-	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
 	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
 	Mesh1P->SetOnlyOwnerSee(true);
 	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
@@ -134,16 +132,11 @@ void AZombieSurvivalProtCharacter::TimeLineFloatReturn(float Value)
 		GetCapsuleComponent()->SetCapsuleHalfHeight(FMath::Lerp(StandingHeight, CrouchedHeight, Value));
 		GetCharacterMovement()->MaxWalkSpeed = FMath::Lerp(MaxMoveSpeed, MaxCrouchedSpeed, Value);
 	}
-	else
+	else if(GetCapsuleComponent()->GetScaledCapsuleHalfHeight() == StandingHeight)
 	{
 		GetCapsuleComponent()->SetCapsuleHalfHeight(FMath::Lerp(GetCapsuleComponent()->GetScaledCapsuleHalfHeight(), StandingHeight, Value));
 		GetCharacterMovement()->MaxWalkSpeed = FMath::Lerp(MaxMoveSpeed, 900.0f, Value);
 	}
-}
-
-void AZombieSurvivalProtCharacter::RunTimeline(float Value)
-{
-	//GetCharacterMovement()->MaxWalkSpeed = FMath::Lerp(MaxMoveSpeed, 900.0f, Value);
 }
 
 void AZombieSurvivalProtCharacter::OnTimeLineFinished()
@@ -269,8 +262,6 @@ void AZombieSurvivalProtCharacter::EndTouch(const ETouchIndex::Type FingerIndex,
 
 void AZombieSurvivalProtCharacter::PlayerCrouch()
 {
-	TimeLine->AddInterpFloat(TimelineCurve, InterpCrouchFunction, FName("Alpha"));
-
 	bPlayerCrouched = true;
 
 	TimeLine->PlayFromStart();
@@ -278,15 +269,16 @@ void AZombieSurvivalProtCharacter::PlayerCrouch()
 
 void AZombieSurvivalProtCharacter::PlayerUncrouch()
 {
-	TimeLine->AddInterpFloat(TimelineCurve, InterpCrouchFunction, FName("Alpha"));
-
-	if (TimeLine->GetPlaybackPosition() <= 0.0f)
+	if (!bPlayerRunning)
 	{
-		TimeLine->PlayFromStart();
-	}
-	else
-	{
-		TimeLine->Reverse();
+		if (TimeLine->GetPlaybackPosition() <= 0.0f)
+		{
+			TimeLine->Play();
+		}
+		else
+		{
+			TimeLine->Reverse();
+		}
 	}
 
 	bPlayerCrouched = false;
@@ -294,19 +286,15 @@ void AZombieSurvivalProtCharacter::PlayerUncrouch()
 
 void AZombieSurvivalProtCharacter::StartRunning()
 {
-	TimeLine->AddInterpFloat(TimelineCurve, InterpRunFunction, FName("Alpha"));
-
 	bPlayerRunning = true;
 	TimeLine->PlayFromStart();
 }
 
 void AZombieSurvivalProtCharacter::StopRunning()
 {
-	TimeLine->AddInterpFloat(TimelineCurve, InterpRunFunction, FName("Alpha"));
-
 	if (TimeLine->GetPlaybackPosition() <= 0.0f)
 	{
-		TimeLine->PlayFromStart();
+		TimeLine->Play();
 	}
 	else
 	{
@@ -358,7 +346,6 @@ void AZombieSurvivalProtCharacter::MoveForward(float Value)
 {
 	if (Value != 0.0f)
 	{
-		// add movement in that direction
 		AddMovementInput(GetActorForwardVector(), Value);
 	}
 }
@@ -367,7 +354,6 @@ void AZombieSurvivalProtCharacter::MoveRight(float Value)
 {
 	if (Value != 0.0f)
 	{
-		// add movement in that direction
 		AddMovementInput(GetActorRightVector(), Value);
 	}
 }

@@ -28,15 +28,18 @@ void UUI_Interactor::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 
 	FVector LineTraceEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * LineRange;
 
-	DrawDebugLine(
-		GetWorld(),
-		PlayerViewPointLocation, 
-		LineTraceEnd,
-		FColor::Blue,
-		false,
-		0.0f, 
-		0, 
-		5.0f);
+	if (bActivateDebugRay)
+	{
+		DrawDebugLine(
+			GetWorld(),
+			PlayerViewPointLocation, 
+			LineTraceEnd,
+			FColor::Blue,
+			false,
+			0.0f, 
+			0, 
+			5.0f);
+	}
 
 	FHitResult Hit;
 	FCollisionQueryParams TraceParams(FName(""), false, GetOwner());

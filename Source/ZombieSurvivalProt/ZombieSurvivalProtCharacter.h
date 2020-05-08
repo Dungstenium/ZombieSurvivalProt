@@ -132,6 +132,12 @@ protected:
 
 	class UTimelineComponent* TimeLine;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class ULifeManager* LifeManager;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class UUI_Interactor* UI_Interactor;
+
 	UPROPERTY(EditAnywhere)
 		class UCurveFloat* TimelineCurve;
 
@@ -149,9 +155,6 @@ protected:
 
 	UFUNCTION()
 		void TimeLineFloatReturn(float Value);
-
-	UFUNCTION()
-		void RunTimeline(float Value);
 
 	UFUNCTION()
 		void OnTimeLineFinished();
