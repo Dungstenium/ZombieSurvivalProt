@@ -100,6 +100,9 @@ void AZombieSurvivalProtCharacter::BeginPlay()
 	//Attach gun mesh component to Skeleton, doing it here because the skeleton is not yet created in the constructor
 	FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
 
+	ActiveWeapon = EActiveWeapon::Rifle;
+	PlayerState = EPlayerState::Idle;
+
 	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
 	if (bUsingMotionControllers)
 	{
@@ -129,7 +132,7 @@ void AZombieSurvivalProtCharacter::BeginPlay()
 
 void AZombieSurvivalProtCharacter::TimeLineFloatReturn(float Value)
 {
-	if ((bPlayerCrouched || (!bPlayerCrouched && GetCapsuleComponent()->GetScaledCapsuleHalfHeight() < StandingHeight)))
+	if ((PlayerState == EPlayerState::Crouching || (PlayerState != EPlayerState::Crouching && GetCapsuleComponent()->GetScaledCapsuleHalfHeight() < StandingHeight)))
 	{
 		GetCapsuleComponent()->SetCapsuleHalfHeight(FMath::Lerp(StandingHeight, CrouchedHeight, Value));
 		GetCharacterMovement()->MaxWalkSpeed = FMath::Lerp(MaxMoveSpeed, MaxCrouchedSpeed, Value);
@@ -166,6 +169,8 @@ void AZombieSurvivalProtCharacter::SetupPlayerInputComponent(class UInputCompone
 	// Bind fire event
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &AZombieSurvivalProtCharacter::OnFire);
 
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AZombieSurvivalProtCharacter::Reload);
+
 	// Enable touchscreen input
 	EnableTouchscreenMovement(PlayerInputComponent);
 
@@ -186,7 +191,7 @@ void AZombieSurvivalProtCharacter::SetupPlayerInputComponent(class UInputCompone
 
 void AZombieSurvivalProtCharacter::OnFire()
 {
-	if (bHasAmmo)
+	if (bHasAmmo && PlayerState != EPlayerState::Interacting)
 	{
 		ReduceAmmoPerShot();
 
@@ -276,21 +281,16 @@ void AZombieSurvivalProtCharacter::Reload()
 	}
 }
 
-void AZombieSurvivalProtCharacter::OnResetVR()
-{
-	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
-}
-
 void AZombieSurvivalProtCharacter::PlayerCrouch()
 {
-	bPlayerCrouched = true;
+	PlayerState = EPlayerState::Crouching;
 
 	TimeLine->PlayFromStart();
 }
 
 void AZombieSurvivalProtCharacter::PlayerUncrouch()
 {
-	if (!bPlayerRunning)
+	if (PlayerState != EPlayerState::Running)
 	{
 		if (TimeLine->GetPlaybackPosition() <= 0.0f)
 		{
@@ -300,19 +300,19 @@ void AZombieSurvivalProtCharacter::PlayerUncrouch()
 		{
 			TimeLine->Reverse();
 		}
+		PlayerState = EPlayerState::Idle;
 	}
-
-	bPlayerCrouched = false;
 }
 
 void AZombieSurvivalProtCharacter::StartRunning()
 {
-	bPlayerRunning = true;
+	PlayerState = EPlayerState::Running;
 	TimeLine->PlayFromStart();
 }
 
 void AZombieSurvivalProtCharacter::StopRunning()
 {
+	PlayerState = EPlayerState::Idle;
 	if (TimeLine->GetPlaybackPosition() <= 0.0f)
 	{
 		TimeLine->Play();
@@ -321,8 +321,6 @@ void AZombieSurvivalProtCharacter::StopRunning()
 	{
 		TimeLine->Reverse();
 	}
-
-	bPlayerRunning = false;
 }
 
 void AZombieSurvivalProtCharacter::MoveForward(float Value)
@@ -351,6 +349,11 @@ void AZombieSurvivalProtCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+}
+
+void AZombieSurvivalProtCharacter::OnResetVR()
+{
+	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
 }
 
 #pragma region TOUCHSTUFF

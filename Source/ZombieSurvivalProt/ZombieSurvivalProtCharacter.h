@@ -7,6 +7,25 @@
 #include "Runtime/Engine/Classes/Components/TimelineComponent.h"
 #include "ZombieSurvivalProtCharacter.generated.h"
 
+UENUM()
+enum class EActiveWeapon : uint8
+{
+	Pistol,
+	Rifle
+};
+
+UENUM()
+enum class EPlayerState : uint8
+{
+	Idle,
+	Crouching,
+	Jumping,
+	Running,
+	Reloading,
+	Interacting,
+	Shooting
+};
+
 class UInputComponent;
 
 UCLASS(config=Game)
@@ -48,8 +67,6 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UMotionControllerComponent* L_MotionController;
 
-	bool bPlayerCrouched = false;
-	bool bPlayerRunning = false;
 	bool bHasAmmo = true;
 
 	int32 MaxAmmo{ 30 };
@@ -87,10 +104,13 @@ public:
 	uint32 bUsingMotionControllers : 1;
 
 	UPROPERTY(BlueprintReadOnly)
-		int32 AmmoCounter{0};
+	int32 AmmoCounter{0};
 
 	UPROPERTY(BlueprintReadOnly)
-		int32 ReserveAmmo{60};
+	int32 ReserveAmmo{60};
+
+	EActiveWeapon ActiveWeapon;
+	EPlayerState PlayerState;
 
 protected:
 	
