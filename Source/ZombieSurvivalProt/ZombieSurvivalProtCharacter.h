@@ -47,25 +47,9 @@ private:
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	class USceneComponent* FP_MuzzleLocation;
 
-	/** Gun mesh: VR view (attached to the VR controller directly, no arm, just the actual gun) */
-	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-	class USkeletalMeshComponent* VR_Gun;
-
-	/** Location on VR gun mesh where projectiles should spawn. */
-	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-	class USceneComponent* VR_MuzzleLocation;
-
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FirstPersonCameraComponent;
-
-	/** Motion controller (right hand) */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UMotionControllerComponent* R_MotionController;
-
-	/** Motion controller (left hand) */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UMotionControllerComponent* L_MotionController;
 
 	bool bHasAmmo = true;
 
@@ -87,10 +71,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
 	FVector GunOffset;
 
-	/** Projectile class to spawn */
-	UPROPERTY(EditDefaultsOnly, Category=Projectile)
-	TSubclassOf<class AZombieSurvivalProtProjectile> ProjectileClass;
-
 	/** Sound to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
 	class USoundBase* FireSound;
@@ -98,10 +78,6 @@ public:
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	class UAnimMontage* FireAnimation;
-
-	/** Whether to use motion controller location for aiming. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	uint32 bUsingMotionControllers : 1;
 
 	UPROPERTY(BlueprintReadOnly)
 	int32 AmmoCounter{0};
@@ -120,9 +96,6 @@ protected:
 
 	void ReduceAmmoPerShot();
 
-	/** Resets HMD orientation and position in VR. */
-	void OnResetVR();
-
 	void MoveForward(float Val);
 
 	void MoveRight(float Val);
@@ -139,19 +112,6 @@ protected:
 	 */
 	void LookUpAtRate(float Rate);
 
-	struct TouchData
-	{
-		TouchData() { bIsPressed = false;Location=FVector::ZeroVector;}
-		bool bIsPressed;
-		ETouchIndex::Type FingerIndex;
-		FVector Location;
-		bool bMoved;
-	};
-	void BeginTouch(const ETouchIndex::Type FingerIndex, const FVector Location);
-	void EndTouch(const ETouchIndex::Type FingerIndex, const FVector Location);
-	void TouchUpdate(const ETouchIndex::Type FingerIndex, const FVector Location);
-	TouchData	TouchItem;
-	
 	void PlayerCrouch();
 	void PlayerUncrouch();
 
@@ -201,6 +161,51 @@ protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End of APawn interface
 
+public:
+	/** Returns Mesh1P subobject **/
+	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
+	/** Returns FirstPersonCameraComponent subobject **/
+	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+
+#pragma region TOUCHSTUFF
+
+	private:
+	/** Gun mesh: VR view (attached to the VR controller directly, no arm, just the actual gun) */
+	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+	class USkeletalMeshComponent* VR_Gun;
+
+	/** Location on VR gun mesh where projectiles should spawn. */
+	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+	class USceneComponent* VR_MuzzleLocation;
+
+	/** Motion controller (right hand) */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UMotionControllerComponent* R_MotionController;
+
+	/** Motion controller (left hand) */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UMotionControllerComponent* L_MotionController;
+
+	void BeginTouch(const ETouchIndex::Type FingerIndex, const FVector Location);
+	void EndTouch(const ETouchIndex::Type FingerIndex, const FVector Location);
+	void TouchUpdate(const ETouchIndex::Type FingerIndex, const FVector Location);
+
+protected:
+
+	/** Whether to use motion controller location for aiming. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	uint32 bUsingMotionControllers : 1;
+
+	struct TouchData
+	{
+		TouchData() { bIsPressed = false;Location=FVector::ZeroVector;}
+		bool bIsPressed;
+		ETouchIndex::Type FingerIndex;
+		FVector Location;
+		bool bMoved;
+	};
+	TouchData	TouchItem;
+
 	/* 
 	 * Configures input for touchscreen devices if there is a valid touch interface for doing so 
 	 *
@@ -209,11 +214,9 @@ protected:
 	 */
 	bool EnableTouchscreenMovement(UInputComponent* InputComponent);
 
-public:
-	/** Returns Mesh1P subobject **/
-	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
-	/** Returns FirstPersonCameraComponent subobject **/
-	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+	/** Resets HMD orientation and position in VR. */
+	void OnResetVR();
 
+#pragma endregion
 };
 
