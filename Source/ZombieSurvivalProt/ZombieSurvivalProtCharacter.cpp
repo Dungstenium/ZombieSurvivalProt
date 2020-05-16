@@ -63,11 +63,12 @@ AZombieSurvivalProtCharacter::AZombieSurvivalProtCharacter()
 	FP_MuzzleLocation->SetRelativeLocation(FVector(0.2f, 48.4f, -10.6f));
 
 	// Default offset from the character location for projectiles to spawn
-	GunOffset = FVector(70.0f, 0.0f, 10.0f);
+	GunOffset = FVector(10.0f, 0.0f, 10.0f);
 
 	// Note: The ProjectileClass and the skeletal mesh/anim blueprints for Mesh1P, FP_Gun, and VR_Gun 
 	// are set in the derived blueprint asset named MyCharacter to avoid direct content references in C++.
 
+#pragma region VRSTUFF
 	// Create VR Controllers.
 	R_MotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("R_MotionController"));
 	R_MotionController->MotionSource = FXRMotionControllerBase::RightHandSourceId;
@@ -91,6 +92,8 @@ AZombieSurvivalProtCharacter::AZombieSurvivalProtCharacter()
 
 	// Uncomment the following line to turn motion controllers on by default:
 	//bUsingMotionControllers = true;
+
+#pragma endregion	
 }
 
 void AZombieSurvivalProtCharacter::BeginPlay()
@@ -102,7 +105,10 @@ void AZombieSurvivalProtCharacter::BeginPlay()
 	FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
 
 	ActiveWeapon = EActiveWeapon::Rifle;
-	PlayerState = EPlayerState::Idle;
+	PlayerState = EPlayerMoveState::Idle;
+	PlayerAction = EPlayerAction::Idle;
+
+	AmmoCounter = MaxAmmo;
 
 	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
 	if (bUsingMotionControllers)
@@ -116,8 +122,6 @@ void AZombieSurvivalProtCharacter::BeginPlay()
 		Mesh1P->SetHiddenInGame(false, true);
 	}
 	
-	AmmoCounter = MaxAmmo;
-
 	if (TimelineCurve)
 	{
 		TimeLine->AddInterpFloat(TimelineCurve, InterpCrouchFunction, FName("Alpha"));
@@ -133,7 +137,7 @@ void AZombieSurvivalProtCharacter::BeginPlay()
 
 void AZombieSurvivalProtCharacter::TimeLineFloatReturn(float Value)
 {
-	if ((PlayerState == EPlayerState::Crouching || (PlayerState != EPlayerState::Crouching && GetCapsuleComponent()->GetScaledCapsuleHalfHeight() < StandingHeight)))
+	if ((PlayerState == EPlayerMoveState::Crouching || (PlayerState != EPlayerMoveState::Crouching && GetCapsuleComponent()->GetScaledCapsuleHalfHeight() < StandingHeight)))
 	{
 		GetCapsuleComponent()->SetCapsuleHalfHeight(FMath::Lerp(StandingHeight, CrouchedHeight, Value));
 		GetCharacterMovement()->MaxWalkSpeed = FMath::Lerp(MaxMoveSpeed, MaxCrouchedSpeed, Value);
@@ -192,44 +196,40 @@ void AZombieSurvivalProtCharacter::SetupPlayerInputComponent(class UInputCompone
 
 void AZombieSurvivalProtCharacter::OnFire()
 {
-	if (bHasAmmo && PlayerState != EPlayerState::Interacting)
+	if (bHasAmmo && PlayerAction != EPlayerAction::Interacting)
 	{
 		ReduceAmmoPerShot();
 
-		UWorld* const World = GetWorld();
-		if (World != NULL)
+		const FRotator SpawnRotation = GetControlRotation();
+		// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
+		const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
+
+		FVector LineTraceEnd = SpawnLocation + SpawnRotation.Vector() * BulletRange;
+
+		DrawDebugLine(
+			GetWorld(),
+			SpawnLocation,
+			LineTraceEnd,
+			FColor::Red,
+			false,
+			10.2f,
+			0,
+			3.0f);
+
+		FHitResult Hit;
+		FCollisionQueryParams TraceParams(FName(""), false, GetOwner());
+		GetWorld()->LineTraceSingleByObjectType(
+			OUT Hit,
+			SpawnLocation,
+			LineTraceEnd,
+			FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody),
+			TraceParams);
+
+		AActor* ActorHit = Hit.GetActor();
+
+		if (ActorHit)
 		{
-			const FRotator SpawnRotation = GetControlRotation();
-			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-			const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
-
-			FVector LineTraceEnd = SpawnLocation + SpawnRotation.Vector() * 3000.0f;
-
-			DrawDebugLine(
-				GetWorld(),
-				SpawnLocation,
-				LineTraceEnd,
-				FColor::Red,
-				false,
-				0.2f,
-				0,
-				3.0f);
-
-			FHitResult Hit;
-			FCollisionQueryParams TraceParams(FName(""), false, GetOwner());
-			GetWorld()->LineTraceSingleByObjectType(
-				OUT Hit,
-				SpawnLocation,
-				LineTraceEnd,
-				FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody),
-				TraceParams);
-
-			AActor* ActorHit = Hit.GetActor();
-
-			if (ActorHit)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Shot at: %s"), *ActorHit->GetName())
-			}
+			UE_LOG(LogTemp, Warning, TEXT("Shot at: %s"), *ActorHit->GetName())
 		}
 
 		if (FireSound != NULL)
@@ -290,14 +290,14 @@ void AZombieSurvivalProtCharacter::Reload()
 
 void AZombieSurvivalProtCharacter::PlayerCrouch()
 {
-	PlayerState = EPlayerState::Crouching;
+	PlayerState = EPlayerMoveState::Crouching;
 
 	TimeLine->PlayFromStart();
 }
 
 void AZombieSurvivalProtCharacter::PlayerUncrouch()
 {
-	if (PlayerState != EPlayerState::Running)
+	if (PlayerState != EPlayerMoveState::Running)
 	{
 		if (TimeLine->GetPlaybackPosition() <= 0.0f)
 		{
@@ -307,19 +307,19 @@ void AZombieSurvivalProtCharacter::PlayerUncrouch()
 		{
 			TimeLine->Reverse();
 		}
-		PlayerState = EPlayerState::Idle;
+		PlayerState = EPlayerMoveState::Idle;
 	}
 }
 
 void AZombieSurvivalProtCharacter::StartRunning()
 {
-	PlayerState = EPlayerState::Running;
+	PlayerState = EPlayerMoveState::Running;
 	TimeLine->PlayFromStart();
 }
 
 void AZombieSurvivalProtCharacter::StopRunning()
 {
-	PlayerState = EPlayerState::Idle;
+	PlayerState = EPlayerMoveState::Idle;
 	if (TimeLine->GetPlaybackPosition() <= 0.0f)
 	{
 		TimeLine->Play();

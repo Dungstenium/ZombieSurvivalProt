@@ -10,17 +10,24 @@
 UENUM()
 enum class EActiveWeapon : uint8
 {
+	Unarmed,
 	Pistol,
 	Rifle
 };
 
 UENUM()
-enum class EPlayerState : uint8
+enum class EPlayerMoveState : uint8
 {
 	Idle,
 	Crouching,
 	Jumping,
-	Running,
+	Running
+};
+
+UENUM()
+enum class EPlayerAction : uint8
+{
+	Idle,
 	Reloading,
 	Interacting,
 	Shooting
@@ -55,6 +62,9 @@ private:
 
 	int32 MaxAmmo{ 30 };
 
+	UPROPERTY(EditAnywhere)
+	float BulletRange{ 3000.0f };
+
 public:
 	
 	AZombieSurvivalProtCharacter();
@@ -86,7 +96,13 @@ public:
 	int32 ReserveAmmo{60};
 
 	EActiveWeapon ActiveWeapon;
-	EPlayerState PlayerState;
+	EPlayerMoveState PlayerState;
+	EPlayerAction PlayerAction;
+
+	/** Returns Mesh1P subobject **/
+	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
+	/** Returns FirstPersonCameraComponent subobject **/
+	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
 protected:
 	
@@ -152,20 +168,10 @@ protected:
 	//Declare our delegate function to be binded with TimeLineFloatReturn
 	FOnTimelineFloat InterpCrouchFunction{};
 
-	FOnTimelineFloat InterpRunFunction{};
-
 	//Declare our delegate function to be binded with OnTimeLineFinished()
 	FOnTimelineEvent TimeLineFinished{};
 
-	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
-	// End of APawn interface
-
-public:
-	/** Returns Mesh1P subobject **/
-	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
-	/** Returns FirstPersonCameraComponent subobject **/
-	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
 #pragma region TOUCHSTUFF
 
