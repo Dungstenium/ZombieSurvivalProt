@@ -2,6 +2,7 @@
 
 #include "ZombieSurvivalProtCharacter.h"
 #include "Animation/AnimInstance.h"
+#include "BaseWeapon2.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
@@ -50,17 +51,24 @@ AZombieSurvivalProtCharacter::AZombieSurvivalProtCharacter()
 	Mesh1P->RelativeRotation = FRotator(1.9f, -19.19f, 5.2f);
 	Mesh1P->RelativeLocation = FVector(-0.5f, -4.4f, -155.7f);
 
-	// Create a gun mesh component
-	FP_Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun"));
-	FP_Gun->SetOnlyOwnerSee(true);			// only the owning player will see this mesh
-	FP_Gun->bCastDynamicShadow = false;
-	FP_Gun->CastShadow = false;
-	// FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
-	FP_Gun->SetupAttachment(RootComponent);
+	//RifleFireTest = CreateDefaultSubobject<UBaseWeapon>(TEXT("Rifle Weapon"));
+	//RifleFireTest->bEditableWhenInherited = true;
+	//RifleFireTest->FirearmMesh->SetOnlyOwnerSee(true);
+	//RifleFireTest->FirearmMesh->bCastDynamicShadow = false;
+	//RifleFireTest->FirearmMesh->CastShadow = false;
+	//RifleFireTest->FirearmMesh->SetupAttachment(RootComponent);
 
-	FP_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
-	FP_MuzzleLocation->SetupAttachment(FP_Gun);
-	FP_MuzzleLocation->SetRelativeLocation(FVector(0.2f, 48.4f, -10.6f));
+	//// Create a gun mesh component
+	//FP_Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun"));
+	//FP_Gun->SetOnlyOwnerSee(true);			// only the owning player will see this mesh
+	//FP_Gun->bCastDynamicShadow = false;
+	//FP_Gun->CastShadow = false;
+	//// FP_Gun->SetupAttachment(Mesh1P, TEXT("GripPoint"));
+	//FP_Gun->SetupAttachment(RootComponent);
+
+	//FP_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("MuzzleLocation"));
+	//FP_MuzzleLocation->SetupAttachment(FP_Gun);
+	//FP_MuzzleLocation->SetRelativeLocation(FVector(0.2f, 48.4f, -10.6f));
 
 	// Default offset from the character location for projectiles to spawn
 	GunOffset = FVector(10.0f, 0.0f, 10.0f);
@@ -68,60 +76,27 @@ AZombieSurvivalProtCharacter::AZombieSurvivalProtCharacter()
 	// Note: The ProjectileClass and the skeletal mesh/anim blueprints for Mesh1P, FP_Gun, and VR_Gun 
 	// are set in the derived blueprint asset named MyCharacter to avoid direct content references in C++.
 
-#pragma region VRSTUFF
-	// Create VR Controllers.
-	R_MotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("R_MotionController"));
-	R_MotionController->MotionSource = FXRMotionControllerBase::RightHandSourceId;
-	R_MotionController->SetupAttachment(RootComponent);
-	L_MotionController = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("L_MotionController"));
-	L_MotionController->SetupAttachment(RootComponent);
-
-	// Create a gun and attach it to the right-hand VR controller.
-	// Create a gun mesh component
-	VR_Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("VR_Gun"));
-	VR_Gun->SetOnlyOwnerSee(true);			// only the owning player will see this mesh
-	VR_Gun->bCastDynamicShadow = false;
-	VR_Gun->CastShadow = false;
-	VR_Gun->SetupAttachment(R_MotionController);
-	VR_Gun->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f));
-
-	VR_MuzzleLocation = CreateDefaultSubobject<USceneComponent>(TEXT("VR_MuzzleLocation"));
-	VR_MuzzleLocation->SetupAttachment(VR_Gun);
-	VR_MuzzleLocation->SetRelativeLocation(FVector(0.000004, 53.999992, 10.000000));
-	VR_MuzzleLocation->SetRelativeRotation(FRotator(0.0f, 90.0f, 0.0f));		// Counteract the rotation of the VR gun model.
-
-	// Uncomment the following line to turn motion controllers on by default:
-	//bUsingMotionControllers = true;
-
-#pragma endregion	
 }
 
 void AZombieSurvivalProtCharacter::BeginPlay()
 {
-	// Call the base class  
 	Super::BeginPlay();
 
 	//Attach gun mesh component to Skeleton, doing it here because the skeleton is not yet created in the constructor
-	FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+	FActorSpawnParameters SpawnParams;
+	EquipedRifle = GetWorld()->SpawnActor<ABaseWeapon2>(RifleBP, GetTransform(), SpawnParams);
+
+	if (EquipedRifle)
+	{
+		EquipedRifle->FirearmMesh->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+	}
 
 	ActiveWeapon = EActiveWeapon::Rifle;
 	PlayerState = EPlayerMoveState::Idle;
 	PlayerAction = EPlayerAction::Idle;
 
-	AmmoCounter = MaxAmmo;
+	//EquipedAmmoCounter = RifleFireTest->MaxAmmo;
 
-	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
-	if (bUsingMotionControllers)
-	{
-		VR_Gun->SetHiddenInGame(false, true);
-		Mesh1P->SetHiddenInGame(true, true);
-	}
-	else
-	{
-		VR_Gun->SetHiddenInGame(true, true);
-		Mesh1P->SetHiddenInGame(false, true);
-	}
-	
 	if (TimelineCurve)
 	{
 		TimeLine->AddInterpFloat(TimelineCurve, InterpCrouchFunction, FName("Alpha"));
@@ -177,9 +152,7 @@ void AZombieSurvivalProtCharacter::SetupPlayerInputComponent(class UInputCompone
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AZombieSurvivalProtCharacter::Reload);
 
 	// Enable touchscreen input
-	EnableTouchscreenMovement(PlayerInputComponent);
 
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AZombieSurvivalProtCharacter::OnResetVR);
 
 	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &AZombieSurvivalProtCharacter::MoveForward);
@@ -198,94 +171,17 @@ void AZombieSurvivalProtCharacter::OnFire()
 {
 	if (bHasAmmo && PlayerAction != EPlayerAction::Interacting)
 	{
-		ReduceAmmoPerShot();
-
-		const FRotator SpawnRotation = GetControlRotation();
-		// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-		const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
-
-		FVector LineTraceEnd = SpawnLocation + SpawnRotation.Vector() * BulletRange;
-
-		DrawDebugLine(
-			GetWorld(),
-			SpawnLocation,
-			LineTraceEnd,
-			FColor::Red,
-			false,
-			10.2f,
-			0,
-			3.0f);
-
-		FHitResult Hit;
-		FCollisionQueryParams TraceParams(FName(""), false, GetOwner());
-		GetWorld()->LineTraceSingleByObjectType(
-			OUT Hit,
-			SpawnLocation,
-			LineTraceEnd,
-			FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody),
-			TraceParams);
-
-		AActor* ActorHit = Hit.GetActor();
-
-		if (ActorHit)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Shot at: %s"), *ActorHit->GetName())
-		}
-
-		if (FireSound != NULL)
-		{
-			UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-		}
-
-		if (FireAnimation != NULL)
-		{
-			// Get the animation object for the arms mesh
-			UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
-			if (AnimInstance != NULL)
-			{
-				AnimInstance->Montage_Play(FireAnimation, 1.f);
-			}
-		}
+		EquipedRifle->Shoot();
 	}
 	else
 	{
-		Reload();
-	}
-}
-
-void AZombieSurvivalProtCharacter::ReduceAmmoPerShot()
-{
-	--AmmoCounter;
-
-	if (AmmoCounter <= 0)
-	{
-		bHasAmmo = false;
+		EquipedRifle->Reload();
 	}
 }
 
 void AZombieSurvivalProtCharacter::Reload()
 {
-	if (ReserveAmmo > 0)
-	{
-		int32 AmmoDifference = MaxAmmo - AmmoCounter;
-		
-		if (AmmoDifference >= ReserveAmmo)
-		{
-			AmmoCounter += ReserveAmmo;
-			ReserveAmmo = 0;
-		}
-		else
-		{
-			AmmoCounter += AmmoDifference;
-			ReserveAmmo -= AmmoDifference;
-		}
-
-		bHasAmmo = true;
-	}
-	else
-	{
-
-	}
+	EquipedRifle->Reload();
 }
 
 void AZombieSurvivalProtCharacter::PlayerCrouch()
@@ -358,88 +254,3 @@ void AZombieSurvivalProtCharacter::LookUpAtRate(float Rate)
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
-void AZombieSurvivalProtCharacter::OnResetVR()
-{
-	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
-}
-
-#pragma region TOUCHSTUFF
-
-bool AZombieSurvivalProtCharacter::EnableTouchscreenMovement(class UInputComponent* PlayerInputComponent)
-{
-	if (FPlatformMisc::SupportsTouchInput() || GetDefault<UInputSettings>()->bUseMouseForTouch)
-	{
-		PlayerInputComponent->BindTouch(EInputEvent::IE_Pressed, this, &AZombieSurvivalProtCharacter::BeginTouch);
-		PlayerInputComponent->BindTouch(EInputEvent::IE_Released, this, &AZombieSurvivalProtCharacter::EndTouch);
-
-		//Commenting this out to be more consistent with FPS BP template.
-		//PlayerInputComponent->BindTouch(EInputEvent::IE_Repeat, this, &AZombieSurvivalProtCharacter::TouchUpdate);
-		return true;
-	}
-	
-	return false;
-}
-
-void AZombieSurvivalProtCharacter::BeginTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
-{
-	if (TouchItem.bIsPressed == true)
-	{
-		return;
-	}
-	if ((FingerIndex == TouchItem.FingerIndex) && (TouchItem.bMoved == false))
-	{
-		OnFire();
-	}
-	TouchItem.bIsPressed = true;
-	TouchItem.FingerIndex = FingerIndex;
-	TouchItem.Location = Location;
-	TouchItem.bMoved = false;
-}
-
-void AZombieSurvivalProtCharacter::EndTouch(const ETouchIndex::Type FingerIndex, const FVector Location)
-{
-	if (TouchItem.bIsPressed == false)
-	{
-		return;
-	}
-	TouchItem.bIsPressed = false;
-}
-
-//void AZombieSurvivalProtCharacter::TouchUpdate(const ETouchIndex::Type FingerIndex, const FVector Location)
-//{
-//	if ((TouchItem.bIsPressed == true) && (TouchItem.FingerIndex == FingerIndex))
-//	{
-//		if (TouchItem.bIsPressed)
-//		{
-//			if (GetWorld() != nullptr)
-//			{
-//				UGameViewportClient* ViewportClient = GetWorld()->GetGameViewport();
-//				if (ViewportClient != nullptr)
-//				{
-//					FVector MoveDelta = Location - TouchItem.Location;
-//					FVector2D ScreenSize;
-//					ViewportClient->GetViewportSize(ScreenSize);
-//					FVector2D ScaledDelta = FVector2D(MoveDelta.X, MoveDelta.Y) / ScreenSize;
-//					if (FMath::Abs(ScaledDelta.X) >= 4.0 / ScreenSize.X)
-//					{
-//						TouchItem.bMoved = true;
-//						float Value = ScaledDelta.X * BaseTurnRate;
-//						AddControllerYawInput(Value);
-//					}
-//					if (FMath::Abs(ScaledDelta.Y) >= 4.0 / ScreenSize.Y)
-//					{
-//						TouchItem.bMoved = true;
-//						float Value = ScaledDelta.Y * BaseTurnRate;
-//						AddControllerPitchInput(Value);
-//					}
-//					TouchItem.Location = Location;
-//				}
-//				TouchItem.Location = Location;
-//			}
-//		}
-//	}
-//}
-
-//Commenting this section out to be consistent with FPS BP template.
-//This allows the user to turn without using the right virtual joystick
-#pragma endregion
