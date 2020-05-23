@@ -69,24 +69,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
-	/** Gun muzzle's offset from the characters location */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
-	FVector GunOffset;
-
-	/** Sound to play each time we fire */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
-	class USoundBase* FireSound;
-
-	/** AnimMontage to play each time we fire */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	class UAnimMontage* FireAnimation;
-
-	UPROPERTY(BlueprintReadOnly)
-	int32 EquipedAmmoCounter{0};
-
-	UPROPERTY(BlueprintReadOnly)
-	int32 EquipedReserveAmmo{60};
-
 	EActiveWeapon ActiveWeapon;
 	EPlayerMoveState PlayerState;
 	EPlayerAction PlayerAction;

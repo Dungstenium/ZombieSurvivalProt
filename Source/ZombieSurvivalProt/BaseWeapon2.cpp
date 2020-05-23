@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "BaseWeapon2.h"
 #include "Animation/AnimInstance.h"
 #include "Components/ArrowComponent.h" 
@@ -19,7 +18,7 @@ ABaseWeapon2::ABaseWeapon2()
 	GuideArrow->SetupAttachment(FirearmMesh);
 	GuideArrow->bHiddenInGame = true;
 
-	AmmoCounter = MaxAmmo;
+	AmmoCounter = WeaponMagazinSize;
 }
 
 void ABaseWeapon2::BeginPlay()
@@ -27,8 +26,6 @@ void ABaseWeapon2::BeginPlay()
 	Super::BeginPlay();
 
 	Player = Cast<AZombieSurvivalProtCharacter>(GetWorld()->GetFirstPlayerController()->GetCharacter());
-	
-	//AttachToActor(Player, FAttachmentTransformRules::KeepRelativeTransform);
 }
 
 void ABaseWeapon2::Shoot()
@@ -38,7 +35,6 @@ void ABaseWeapon2::Shoot()
 		ReduceAmmoPerShot();
 
 		const FRotator SpawnRotation = GuideArrow->GetComponentRotation();
-		// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
 		const FVector SpawnLocation = GuideArrow->GetComponentLocation();
 
 		FVector LineTraceEnd = SpawnLocation + SpawnRotation.Vector() * BulletRange;
@@ -104,7 +100,7 @@ void ABaseWeapon2::Reload()
 {
 	if (ReserveAmmo > 0)
 	{
-		int32 AmmoDifference = MaxAmmo - AmmoCounter;
+		int32 AmmoDifference = WeaponMagazinSize - AmmoCounter;
 
 		if (AmmoDifference >= ReserveAmmo)
 		{

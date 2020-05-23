@@ -16,13 +16,13 @@ private:
 	bool bHasAmmo = true;
 
 	UPROPERTY(EditAnywhere)
-		class UArrowComponent* GuideArrow;
+	class UArrowComponent* GuideArrow;
 
 	UPROPERTY(EditAnywhere)
-		float BulletRange{ 3000.0f };
+	float BulletRange{ 3000.0f };
 
 	UPROPERTY()
-		class AZombieSurvivalProtCharacter* Player;
+	class AZombieSurvivalProtCharacter* Player;
 
 	void ReduceAmmoPerShot();
 
@@ -34,22 +34,25 @@ public:
 	ABaseWeapon2();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-		class USoundBase* FireSound;
+	class USoundBase* FireSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-		class UAnimMontage* FireAnimation;
+	class UAnimMontage* FireAnimation;
 
 	UPROPERTY(EditAnywhere, Category = Mesh)
-		class USkeletalMeshComponent* FirearmMesh;
+	class USkeletalMeshComponent* FirearmMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		int32 ReserveAmmo;
+	int32 ReserveAmmo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		int32 MaxAmmo{30};
+	int32 WeaponMagazinSize{30};
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		int32 AmmoCounter;
+	int32 AmmoCounter;
+
+	UPROPERTY(EditAnywhere)
+	float DamagePerShot{ 10.0f };
 
 	void Shoot();
 	void Reload();
