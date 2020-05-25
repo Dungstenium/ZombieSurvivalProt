@@ -26,6 +26,9 @@ private:
 
 	void ReduceAmmoPerShot();
 
+	UPROPERTY(EditAnywhere, Category = Gameplay)
+	class UParticleSystem* MuzzleFlash;
+
 protected:
 	virtual void BeginPlay() override;
 

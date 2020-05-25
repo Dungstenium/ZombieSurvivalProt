@@ -5,6 +5,7 @@
 #include "Components/ArrowComponent.h" 
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystem.h"
 #include "Public/CollisionQueryParams.h"
 #include "ZombieSurvivalProtCharacter.h"
 
@@ -17,6 +18,8 @@ ABaseWeapon2::ABaseWeapon2()
 	GuideArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow"));
 	GuideArrow->SetupAttachment(FirearmMesh);
 	GuideArrow->bHiddenInGame = true;
+
+	MuzzleFlash = CreateDefaultSubobject<UParticleSystem>(TEXT("WeaponMuzzleFlash"));
 
 	AmmoCounter = WeaponMagazinSize;
 }
@@ -78,6 +81,11 @@ void ABaseWeapon2::Shoot()
 			{
 				AnimInstance->Montage_Play(FireAnimation, 1.f);
 			}
+		}
+
+		if (MuzzleFlash != NULL)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SpawnLocation, SpawnRotation, true);
 		}
 	}
 	else
