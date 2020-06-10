@@ -2,9 +2,12 @@
 
 #include "BaseWeapon2.h"
 #include "Animation/AnimInstance.h"
+#include "Animation/SkeletalMeshActor.h"
 #include "Components/ArrowComponent.h" 
 #include "DrawDebugHelpers.h"
 #include "Kismet/GameplayStatics.h"
+#include "Materials/MaterialInterface.h"
+#include "Math/UnrealMathUtility.h"
 #include "Particles/ParticleSystem.h"
 #include "Public/CollisionQueryParams.h"
 #include "ZombieSurvivalProtCharacter.h"
@@ -20,6 +23,11 @@ ABaseWeapon2::ABaseWeapon2()
 	GuideArrow->bHiddenInGame = true;
 
 	MuzzleFlash = CreateDefaultSubobject<UParticleSystem>(TEXT("WeaponMuzzleFlash"));
+
+	BulletImpactOnWalls = CreateDefaultSubobject<UParticleSystem>(TEXT("BulletEffectlOnWalls"));
+	BulletImpactOnZombies = CreateDefaultSubobject<UParticleSystem>(TEXT("BulletEffectlOnZombies"));
+
+	ImpactDecal = CreateDefaultSubobject<UMaterialInterface>(TEXT("ShotDecal"));
 
 	AmmoCounter = WeaponMagazinSize;
 }
@@ -65,7 +73,26 @@ void ABaseWeapon2::Shoot()
 
 		if (ActorHit)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Shot at: %s"), *ActorHit->GetName())
+			UE_LOG(LogTemp, Warning, TEXT("Shot at: %s"), *ActorHit->GetName());
+			
+			if (ActorHit->GetClass()->IsChildOf(ASkeletalMeshActor::StaticClass()) && BulletImpactOnZombies)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactOnZombies, Hit.Location, Hit.Normal.Rotation(), true);
+			}
+			else if (BulletImpactOnWalls && ImpactDecal)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactOnWalls, Hit.Location, Hit.Normal.Rotation(), true);
+
+				FVector DecalSize = FVector(FMath::RandRange(7.0f, 25.0f));
+				UGameplayStatics::SpawnDecalAttached(ImpactDecal,
+					DecalSize,
+					Hit.GetComponent(),
+					NAME_None, Hit.Location, 
+					Hit.Normal.Rotation(),
+					EAttachLocation::KeepWorldPosition,
+					60.0f);
+			}
+
 		}
 
 		if (FireSound != NULL)

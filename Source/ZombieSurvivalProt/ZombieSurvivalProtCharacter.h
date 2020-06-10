@@ -51,16 +51,22 @@ private:
 	class UCameraComponent* FirstPersonCameraComponent;
 
 	bool bHasAmmo = true;
+	bool bPlayerInteracted = false;
 
 	int32 EquipedMaxAmmo{ 30 };
 
 	UPROPERTY(EditAnywhere)
 	float BulletRange{ 3000.0f };
 
+	void InteractWithObject();
+	void DeactivateInteractionWithObject();
+
 public:
 	
 	AZombieSurvivalProtCharacter();
 	
+	bool GetPlayerInteraction() const;
+
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseTurnRate;
@@ -82,6 +88,8 @@ protected:
 	
 	virtual void BeginPlay();
 		
+	virtual void Tick(float DeltaSeconds) override;
+
 	void OnFire();
 
 	void MoveForward(float Val);

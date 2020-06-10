@@ -29,6 +29,15 @@ private:
 	UPROPERTY(EditAnywhere, Category = Gameplay)
 	class UParticleSystem* MuzzleFlash;
 
+	UPROPERTY(EditAnywhere, Category = Gameplay)
+	class UParticleSystem* BulletImpactOnWalls;
+
+	UPROPERTY(EditAnywhere, Category = Gameplay)
+	class UParticleSystem* BulletImpactOnZombies;
+
+	UPROPERTY(EditAnywhere, Category = Gameplay)
+	class UMaterialInterface* ImpactDecal;
+
 protected:
 	virtual void BeginPlay() override;
 

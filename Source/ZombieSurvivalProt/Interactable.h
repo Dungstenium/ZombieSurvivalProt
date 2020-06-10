@@ -12,40 +12,38 @@ class ZOMBIESURVIVALPROT_API AInteractable : public AActor
 	GENERATED_BODY()
 	
 
-	UFUNCTION()
-		void OnOverlapBegin(
+protected:
+
+		virtual void OnOverlapBegin(
 			class UPrimitiveComponent* OverlappedComp,
 			class AActor* OtherActor,
 			class UPrimitiveComponent* OtherComp, 
 			int32 OtherBodyIndex, bool bFromSweep, 
 			const FHitResult& SweepResult);
 
-	UFUNCTION()
-		void OnOverlapEnd(
+		virtual void OnOverlapEnd(
 			class UPrimitiveComponent* OverlappedComp,
 			class AActor* OtherActor, 
 			class UPrimitiveComponent* OtherComp,
 			int32 OtherBodyIndex);
 
 	UPROPERTY(EditAnywhere, Category = Properties)
-		class UBillboardComponent* PressPopUp;
+	class UBillboardComponent* PressPopUp;
 
 	UPROPERTY(EditAnywhere, Category = Properties)
-		class UBillboardComponent* InteractableVisualizer;
+	class UBillboardComponent* InteractableVisualizer;
+
+	virtual void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere, Category = Properties)
+	class UStaticMeshComponent* StaticMesh;
+
+	UPROPERTY(EditAnywhere, Category = Properties)
+	class UBoxComponent* Trigger;
 
 public:	
 
 	AInteractable();
 
 	void SetPressPopUpVisible(bool State);
-
-protected:
-
-	virtual void BeginPlay() override;
-
-	UPROPERTY(EditAnywhere, Category = Properties)
-		class UStaticMeshComponent* StaticMesh;
-
-	UPROPERTY(EditAnywhere, Category = Properties)
-		class UBoxComponent* Trigger;
 };

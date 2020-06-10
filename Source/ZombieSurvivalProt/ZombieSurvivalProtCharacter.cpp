@@ -47,6 +47,23 @@ AZombieSurvivalProtCharacter::AZombieSurvivalProtCharacter()
 	Mesh1P->RelativeLocation = FVector(-0.5f, -4.4f, -155.7f);
 }
 
+void AZombieSurvivalProtCharacter::InteractWithObject()
+{
+	bPlayerInteracted = true;
+	UE_LOG(LogTemp, Warning, TEXT("interacted"))
+}
+
+void AZombieSurvivalProtCharacter::DeactivateInteractionWithObject()
+{
+	bPlayerInteracted = false;
+	UE_LOG(LogTemp, Warning, TEXT("uninteracted"))
+}
+
+bool AZombieSurvivalProtCharacter::GetPlayerInteraction() const
+{
+	return bPlayerInteracted;
+}
+
 void AZombieSurvivalProtCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -96,6 +113,13 @@ void AZombieSurvivalProtCharacter::OnTimeLineFinished()
 
 }
 
+void AZombieSurvivalProtCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+
+}
+
 void AZombieSurvivalProtCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// set up gameplay key bindings
@@ -118,10 +142,9 @@ void AZombieSurvivalProtCharacter::SetupPlayerInputComponent(class UInputCompone
 
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, this, &AZombieSurvivalProtCharacter::Reload);
 
-	// Enable touchscreen input
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AZombieSurvivalProtCharacter::InteractWithObject);
+	PlayerInputComponent->BindAction("Interact", IE_Released, this, &AZombieSurvivalProtCharacter::DeactivateInteractionWithObject);
 
-
-	// Bind movement events
 	PlayerInputComponent->BindAxis("MoveForward", this, &AZombieSurvivalProtCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AZombieSurvivalProtCharacter::MoveRight);
 
