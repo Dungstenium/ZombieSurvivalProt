@@ -34,5 +34,10 @@ class ZOMBIESURVIVALPROT_API AAmmoBox : public AInteractable
 
 	AAmmoBox();
 
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void BeginPlay() override;
 
+	bool PlayerInReach = false;
+
+	class AZombieSurvivalProtCharacter* Player = NULL;
 };

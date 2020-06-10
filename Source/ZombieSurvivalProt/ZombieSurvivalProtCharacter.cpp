@@ -113,13 +113,6 @@ void AZombieSurvivalProtCharacter::OnTimeLineFinished()
 
 }
 
-void AZombieSurvivalProtCharacter::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-
-
-}
-
 void AZombieSurvivalProtCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// set up gameplay key bindings

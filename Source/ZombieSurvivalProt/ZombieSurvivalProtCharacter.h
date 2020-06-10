@@ -59,13 +59,16 @@ private:
 	float BulletRange{ 3000.0f };
 
 	void InteractWithObject();
-	void DeactivateInteractionWithObject();
 
 public:
 	
 	AZombieSurvivalProtCharacter();
 	
 	bool GetPlayerInteraction() const;
+	void DeactivateInteractionWithObject();
+
+	UPROPERTY(BlueprintReadWrite, Meta = (AllowPrivateAccess = true))
+	class ABaseWeapon2* EquipedRifle;
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -88,8 +91,6 @@ protected:
 	
 	virtual void BeginPlay();
 		
-	virtual void Tick(float DeltaSeconds) override;
-
 	void OnFire();
 
 	void MoveForward(float Val);
@@ -123,9 +124,6 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UUI_Interactor* UI_Interactor;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = true))
-	class ABaseWeapon2* EquipedRifle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = true))
 	TSubclassOf<ABaseWeapon2> RifleBP;

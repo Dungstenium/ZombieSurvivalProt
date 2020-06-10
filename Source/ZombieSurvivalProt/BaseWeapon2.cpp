@@ -37,6 +37,8 @@ void ABaseWeapon2::BeginPlay()
 	Super::BeginPlay();
 
 	Player = Cast<AZombieSurvivalProtCharacter>(GetWorld()->GetFirstPlayerController()->GetCharacter());
+
+	ActualReserveAmmo = MaxReserveAmmo;
 }
 
 void ABaseWeapon2::Shoot()
@@ -133,19 +135,19 @@ void ABaseWeapon2::ReduceAmmoPerShot()
 
 void ABaseWeapon2::Reload()
 {
-	if (ReserveAmmo > 0)
+	if (ActualReserveAmmo > 0)
 	{
 		int32 AmmoDifference = WeaponMagazinSize - AmmoCounter;
 
-		if (AmmoDifference >= ReserveAmmo)
+		if (AmmoDifference >= ActualReserveAmmo)
 		{
-			AmmoCounter += ReserveAmmo;
-			ReserveAmmo = 0;
+			AmmoCounter += ActualReserveAmmo;
+			ActualReserveAmmo = 0;
 		}
 		else
 		{
 			AmmoCounter += AmmoDifference;
-			ReserveAmmo -= AmmoDifference;
+			ActualReserveAmmo -= AmmoDifference;
 		}
 
 		bHasAmmo = true;
@@ -154,4 +156,9 @@ void ABaseWeapon2::Reload()
 	{
 
 	}
+}
+
+void ABaseWeapon2::ReplenishAmmo()
+{
+	ActualReserveAmmo = MaxReserveAmmo;
 }

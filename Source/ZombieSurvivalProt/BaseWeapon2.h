@@ -15,6 +15,7 @@ private:
 
 	bool bHasAmmo = true;
 
+
 	UPROPERTY(EditAnywhere)
 	class UArrowComponent* GuideArrow;
 
@@ -41,7 +42,6 @@ private:
 protected:
 	virtual void BeginPlay() override;
 
-
 public:
 	ABaseWeapon2();
 
@@ -55,7 +55,10 @@ public:
 	class USkeletalMeshComponent* FirearmMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 ReserveAmmo;
+	int32 MaxReserveAmmo;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 ActualReserveAmmo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 WeaponMagazinSize{30};
@@ -68,4 +71,5 @@ public:
 
 	void Shoot();
 	void Reload();
+	void ReplenishAmmo();
 };
