@@ -2,9 +2,12 @@
 
 
 #include "AmmoBox.h"
+#include "Animation/AnimInstance.h"
+#include "Animation/SkeletalMeshActor.h"
 #include "BaseWeapon2.h"
 #include "Components/BoxComponent.h" 
 #include "Components/InputComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "ZombieSurvivalProtCharacter.h"
 
 
@@ -21,10 +24,44 @@ void AAmmoBox::Tick(float DeltaSeconds)
 	if (Player && Player->GetPlayerInteraction() && PlayerInReach)
 	{
 		Player->EquipedRifle->ReplenishAmmo();	
-		UE_LOG(LogTemp, Warning, TEXT("sup2"))
-
 		Player->DeactivateInteractionWithObject();
+
+
+		if (FireSound != NULL)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+		}
+
+		if (RearmAnimation != NULL && Player)
+		{
+			// Get the animation object for the arms mesh OF THE PLAYER
+			UAnimInstance* AnimInstance = Player->GetMesh1P()->GetAnimInstance();
+			if (AnimInstance != NULL)
+			{
+				AnimInstance->Montage_Play(RearmAnimation, 1.f);
+			}
+		}
+		Timer += DeltaSeconds;
 	}
+
+	if (Timer > 0 && Player)
+	{
+		if (Timer <= 0.5f)
+		{
+			Player->PlayerAction = EPlayerAction::Interacting;
+		}
+		Timer += DeltaSeconds;
+	}
+
+	if (RearmAnimation != NULL && Player != NULL)
+	{
+		if (Timer >= RearmAnimation->GetPlayLength())
+		{
+			Player->PlayerAction = EPlayerAction::Idle;
+			Timer = 0.0f;
+		}
+	}
+
 }
 
 void AAmmoBox::BeginPlay()

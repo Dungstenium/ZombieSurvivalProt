@@ -2,6 +2,7 @@
 
 
 #include "UI_Interactor.h"
+#include "AmmoBox.h"
 #include "DrawDebugHelpers.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
@@ -77,3 +78,4 @@ void UUI_Interactor::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 		}
 	}
 }
+

@@ -39,5 +39,15 @@ class ZOMBIESURVIVALPROT_API AAmmoBox : public AInteractable
 
 	bool PlayerInReach = false;
 
+	float Timer = 0.0f;
+
 	class AZombieSurvivalProtCharacter* Player = NULL;
+
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	class USoundBase* FireSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	class UAnimMontage* RearmAnimation;
 };
