@@ -21,44 +21,45 @@ void AAmmoBox::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	if (Player && Player->GetPlayerInteraction() && PlayerInReach)
+	if (Player)
 	{
-		Player->EquipedRifle->ReplenishAmmo();	
-		Player->DeactivateInteractionWithObject();
-
-
-		if (FireSound != NULL)
+		if (Player->PlayerAction == EPlayerAction::Idle && Player->GetPlayerInteraction() && PlayerInReach && !Player->EquipedRifle->bIsFullAmmo)
 		{
-			UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-		}
+			Player->EquipedRifle->ReplenishAmmo();	
+			Player->DeactivateInteractionWithObject();
 
-		if (RearmAnimation != NULL && Player)
-		{
-			// Get the animation object for the arms mesh OF THE PLAYER
-			UAnimInstance* AnimInstance = Player->GetMesh1P()->GetAnimInstance();
-			if (AnimInstance != NULL)
+			if (FireSound != NULL)
 			{
-				AnimInstance->Montage_Play(RearmAnimation, 1.f);
+				UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
 			}
-		}
-		Timer += DeltaSeconds;
-	}
 
-	if (Timer > 0 && Player)
-	{
-		if (Timer <= 0.5f)
-		{
-			Player->PlayerAction = EPlayerAction::Interacting;
+			if (RearmAnimation != NULL && Player)
+			{
+				// Get the animation object for the arms mesh OF THE PLAYER
+				UAnimInstance* AnimInstance = Player->GetMesh1P()->GetAnimInstance();
+				if (AnimInstance != NULL)
+				{
+					AnimInstance->Montage_Play(RearmAnimation, 1.f);
+				}
+			}
+			Timer += DeltaSeconds;
 		}
-		Timer += DeltaSeconds;
-	}
 
-	if (RearmAnimation != NULL && Player != NULL)
-	{
-		if (Timer >= RearmAnimation->GetPlayLength())
+		if (RearmAnimation != NULL)
 		{
-			Player->PlayerAction = EPlayerAction::Idle;
-			Timer = 0.0f;
+			if (Timer >= RearmAnimation->GetPlayLength())
+			{
+				Player->PlayerAction = EPlayerAction::Idle;
+				Timer = 0.0f;
+			}
+			else if (Timer > 0)
+			{
+				if (Timer <= 0.3f)
+				{
+					Player->PlayerAction = EPlayerAction::Interacting;
+				}
+				Timer += DeltaSeconds;
+			}
 		}
 	}
 

@@ -50,13 +50,11 @@ AZombieSurvivalProtCharacter::AZombieSurvivalProtCharacter()
 void AZombieSurvivalProtCharacter::InteractWithObject()
 {
 	bPlayerInteracted = true;
-	UE_LOG(LogTemp, Warning, TEXT("interacted"))
 }
 
 void AZombieSurvivalProtCharacter::DeactivateInteractionWithObject()
 {
 	bPlayerInteracted = false;
-	UE_LOG(LogTemp, Warning, TEXT("uninteracted"))
 }
 
 bool AZombieSurvivalProtCharacter::GetPlayerInteraction() const

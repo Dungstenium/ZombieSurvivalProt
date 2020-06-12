@@ -68,6 +68,8 @@ public:
 	UPROPERTY(EditAnywhere)
 	float DamagePerShot{ 10.0f };
 
+	bool bIsFullAmmo = true;
+	
 	void Shoot();
 	void Reload();
 	void ReplenishAmmo();

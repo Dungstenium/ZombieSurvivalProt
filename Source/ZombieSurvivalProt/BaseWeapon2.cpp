@@ -127,6 +127,11 @@ void ABaseWeapon2::ReduceAmmoPerShot()
 {
 	--AmmoCounter;
 
+	if (bIsFullAmmo)
+	{
+		bIsFullAmmo = false;
+	}
+
 	if (AmmoCounter <= 0)
 	{
 		bHasAmmo = false;
@@ -160,5 +165,9 @@ void ABaseWeapon2::Reload()
 
 void ABaseWeapon2::ReplenishAmmo()
 {
-	ActualReserveAmmo = (WeaponMagazinSize - AmmoCounter) + MaxReserveAmmo;
+	if (!bIsFullAmmo)
+	{
+		ActualReserveAmmo = (WeaponMagazinSize - AmmoCounter) + MaxReserveAmmo;
+		bIsFullAmmo = true;
+	}
 }
