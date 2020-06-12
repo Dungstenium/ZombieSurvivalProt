@@ -47,11 +47,17 @@ protected:
 public:
 	ABaseWeapon2();
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Shooting)
 	class USoundBase* FireSound;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Shooting)
 	class UAnimMontage* FireAnimation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Reloading)
+	class USoundBase* ReloadSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Reloading)
+	class UAnimMontage* ReloadAnimation;
 
 	UPROPERTY(EditAnywhere, Category = Mesh)
 	class USkeletalMeshComponent* FirearmMesh;

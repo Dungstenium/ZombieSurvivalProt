@@ -199,6 +199,21 @@ void ABaseWeapon2::Reload()
 			ActualReserveAmmo -= AmmoDifference;
 		}
 
+		if (ReloadSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, ReloadSound, GuideArrow->GetComponentLocation());
+		}
+
+		if (ReloadAnimation && Player)
+		{
+			// Get the animation object for the arms mesh OF THE PLAYER
+			UAnimInstance* AnimInstance = Player->GetMesh1P()->GetAnimInstance();
+			if (AnimInstance)
+			{
+				AnimInstance->Montage_Play(ReloadAnimation, 1.f);
+			}
+		}
+
 		bHasAmmo = true;
 	}
 	else
