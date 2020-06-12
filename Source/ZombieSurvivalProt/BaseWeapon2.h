@@ -15,7 +15,6 @@ private:
 
 	bool bHasAmmo = true;
 
-
 	UPROPERTY(EditAnywhere)
 	class UArrowComponent* GuideArrow;
 

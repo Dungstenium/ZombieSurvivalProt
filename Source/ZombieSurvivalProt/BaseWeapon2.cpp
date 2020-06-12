@@ -160,5 +160,5 @@ void ABaseWeapon2::Reload()
 
 void ABaseWeapon2::ReplenishAmmo()
 {
-	ActualReserveAmmo = MaxReserveAmmo;
+	ActualReserveAmmo = (WeaponMagazinSize - AmmoCounter) + MaxReserveAmmo;
 }
