@@ -153,16 +153,21 @@ void AZombieSurvivalProtCharacter::OnFire()
 	if (bHasAmmo && PlayerAction == EPlayerAction::Idle)
 	{
 		EquipedRifle->Shoot();
+		PlayerAction = EPlayerAction::Shooting;
 	}
 	else if (!bHasAmmo && PlayerAction == EPlayerAction::Idle)
 	{
-		EquipedRifle->Reload();
+		Reload();
 	}
 }
 
 void AZombieSurvivalProtCharacter::Reload()
 {
-	EquipedRifle->Reload();
+	if (PlayerAction == EPlayerAction::Idle)
+	{
+		PlayerAction = EPlayerAction::Reloading;
+		EquipedRifle->Reload();
+	}
 }
 
 void AZombieSurvivalProtCharacter::PlayerCrouch()

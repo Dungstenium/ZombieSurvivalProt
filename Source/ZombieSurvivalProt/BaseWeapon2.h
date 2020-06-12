@@ -74,6 +74,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	float ShotDelay = 0.2f;
 
+	UPROPERTY(EditAnywhere)
+	float ReloadDelay = 1.2f;
+
 	bool bIsFullAmmo = true;
 	
 	void Shoot();

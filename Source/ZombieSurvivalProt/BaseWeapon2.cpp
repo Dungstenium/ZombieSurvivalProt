@@ -47,16 +47,31 @@ void ABaseWeapon2::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	if (Timer > 0 && Timer < ShotDelay)
+	if (Timer > 0 && Timer < ShotDelay && Player->PlayerAction == EPlayerAction::Shooting)
 	{
 		Timer += DeltaSeconds;
 
-		if (Player->PlayerAction != EPlayerAction::Idle)
+		if (Player->PlayerAction != EPlayerAction::Shooting)
 		{
 			Player->PlayerAction = EPlayerAction::Shooting;
 		}
 	}
 	else if (Timer >= ShotDelay && Player->PlayerAction == EPlayerAction::Shooting)
+	{
+		Player->PlayerAction = EPlayerAction::Idle;
+		Timer = 0.0f;
+	}
+
+	if (Player->PlayerAction == EPlayerAction::Reloading && Timer > 0 && Timer < ReloadDelay)
+	{
+		Timer += DeltaSeconds;
+
+		if (Player->PlayerAction != EPlayerAction::Reloading)
+		{
+			Player->PlayerAction = EPlayerAction::Reloading;
+		}
+	}
+	else if (Timer >= ReloadDelay && Player->PlayerAction == EPlayerAction::Reloading)
 	{
 		Player->PlayerAction = EPlayerAction::Idle;
 		Timer = 0.0f;
@@ -114,7 +129,6 @@ void ABaseWeapon2::Shoot()
 			}
 		}
 
-
 		if (FireSound)
 		{
 			UGameplayStatics::PlaySoundAtLocation(this, FireSound, SpawnLocation);
@@ -170,6 +184,8 @@ void ABaseWeapon2::Reload()
 {
 	if (ActualReserveAmmo > 0)
 	{
+		Timer += 0.01f;
+
 		int32 AmmoDifference = WeaponMagazinSize - AmmoCounter;
 
 		if (AmmoDifference >= ActualReserveAmmo)
