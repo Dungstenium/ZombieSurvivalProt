@@ -68,61 +68,56 @@ void ABaseWeapon2::Shoot()
 	if (bHasAmmo)
 	{
 		ReduceAmmoPerShot();
-		Timer += 0.01f;
 		Player->PlayerAction = EPlayerAction::Shooting;
+
+		Timer += 0.01f;
 
 		const FRotator SpawnRotation = GuideArrow->GetComponentRotation();
 		const FVector SpawnLocation = GuideArrow->GetComponentLocation();
+		FHitResult Hit;
 
 		FVector LineTraceEnd = SpawnLocation + SpawnRotation.Vector() * BulletRange;
 
-		DrawDebugLine(
-			GetWorld(),
-			SpawnLocation,
-			LineTraceEnd,
-			FColor::Red,
-			false,
-			10.2f,
-			0,
-			3.0f);
-
-		FHitResult Hit;
 		FCollisionQueryParams TraceParams(FName(""), false, GetOwner());
-		GetWorld()->LineTraceSingleByObjectType(
+		bool HitSomething = GetWorld()->LineTraceSingleByObjectType(
 			OUT Hit,
 			SpawnLocation,
 			LineTraceEnd,
 			FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody),
 			TraceParams);
 
-		AActor* ActorHit = Hit.GetActor();
-
-		if (ActorHit)
+		if (HitSomething)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Shot at: %s"), *ActorHit->GetName());
+			AActor* ActorHit = Hit.GetActor();
 			
-			if (ActorHit->GetClass()->IsChildOf(ASkeletalMeshActor::StaticClass()) && BulletImpactOnZombies)
+			if (ActorHit)
 			{
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactOnZombies, Hit.Location, Hit.Normal.Rotation(), true);
-			}
-			else if (BulletImpactOnWalls && ImpactDecal)
-			{
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactOnWalls, Hit.Location, Hit.Normal.Rotation(), true);
+				UE_LOG(LogTemp, Warning, TEXT("Shot at: %s"), *ActorHit->GetName());
+			
+				if (ActorHit->GetClass()->IsChildOf(ASkeletalMeshActor::StaticClass()) && BulletImpactOnZombies)
+				{
+					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactOnZombies, Hit.Location, Hit.Normal.Rotation(), true);
+				}
+				else if (BulletImpactOnWalls && ImpactDecal)
+				{
+					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactOnWalls, Hit.Location, Hit.Normal.Rotation(), true);
 
-				FVector DecalSize = FVector(FMath::RandRange(7.0f, 25.0f));
-				UGameplayStatics::SpawnDecalAttached(ImpactDecal,
-					DecalSize,
-					Hit.GetComponent(),
-					NAME_None, Hit.Location, 
-					Hit.Normal.Rotation(),
-					EAttachLocation::KeepWorldPosition,
-					60.0f);
+					FVector DecalSize = FVector(FMath::RandRange(7.0f, 25.0f));
+					UGameplayStatics::SpawnDecalAttached(ImpactDecal,
+						DecalSize,
+						Hit.GetComponent(),
+						NAME_None, Hit.Location, 
+						Hit.Normal.Rotation(),
+						EAttachLocation::KeepWorldPosition,
+						60.0f);
+				}
 			}
 		}
 
+
 		if (FireSound)
 		{
-			UGameplayStatics::PlaySoundAtLocation(this, FireSound, GuideArrow->GetComponentLocation());
+			UGameplayStatics::PlaySoundAtLocation(this, FireSound, SpawnLocation);
 		}
 
 		if (FireAnimation && Player)
@@ -139,6 +134,16 @@ void ABaseWeapon2::Shoot()
 		{
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SpawnLocation, SpawnRotation, true);
 		}
+
+		DrawDebugLine(
+			GetWorld(),
+			SpawnLocation,
+			LineTraceEnd,
+			FColor::Red,
+			false,
+			10.2f,
+			0,
+			3.0f);
 	}
 	else
 	{

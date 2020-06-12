@@ -47,21 +47,6 @@ AZombieSurvivalProtCharacter::AZombieSurvivalProtCharacter()
 	Mesh1P->RelativeLocation = FVector(-0.5f, -4.4f, -155.7f);
 }
 
-void AZombieSurvivalProtCharacter::InteractWithObject()
-{
-	bPlayerInteracted = true;
-}
-
-void AZombieSurvivalProtCharacter::DeactivateInteractionWithObject()
-{
-	bPlayerInteracted = false;
-}
-
-bool AZombieSurvivalProtCharacter::GetPlayerInteraction() const
-{
-	return bPlayerInteracted;
-}
-
 void AZombieSurvivalProtCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -146,6 +131,21 @@ void AZombieSurvivalProtCharacter::SetupPlayerInputComponent(class UInputCompone
 	PlayerInputComponent->BindAxis("TurnRate", this, &AZombieSurvivalProtCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AZombieSurvivalProtCharacter::LookUpAtRate);
+}
+
+void AZombieSurvivalProtCharacter::InteractWithObject()
+{
+	bPlayerInteracted = true;
+}
+
+void AZombieSurvivalProtCharacter::DeactivateInteractionWithObject()
+{
+	bPlayerInteracted = false;
+}
+
+bool AZombieSurvivalProtCharacter::GetPlayerInteraction() const
+{
+	return bPlayerInteracted;
 }
 
 void AZombieSurvivalProtCharacter::OnFire()
