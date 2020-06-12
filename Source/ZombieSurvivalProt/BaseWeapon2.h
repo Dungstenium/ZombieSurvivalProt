@@ -15,11 +15,13 @@ private:
 
 	bool bHasAmmo = true;
 
-	UPROPERTY(EditAnywhere)
-	class UArrowComponent* GuideArrow;
+	float Timer = 0.0f;
 
 	UPROPERTY(EditAnywhere)
 	float BulletRange{ 3000.0f };
+
+	UPROPERTY(EditAnywhere)
+	class UArrowComponent* GuideArrow;
 
 	UPROPERTY()
 	class AZombieSurvivalProtCharacter* Player;
@@ -40,6 +42,7 @@ private:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 
 public:
 	ABaseWeapon2();
@@ -67,6 +70,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float DamagePerShot{ 10.0f };
+
+	UPROPERTY(EditAnywhere)
+	float ShotDelay = 0.2f;
 
 	bool bIsFullAmmo = true;
 	

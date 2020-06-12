@@ -150,11 +150,11 @@ void AZombieSurvivalProtCharacter::SetupPlayerInputComponent(class UInputCompone
 
 void AZombieSurvivalProtCharacter::OnFire()
 {
-	if (bHasAmmo && PlayerAction != EPlayerAction::Interacting)
+	if (bHasAmmo && PlayerAction == EPlayerAction::Idle)
 	{
 		EquipedRifle->Shoot();
 	}
-	else
+	else if (!bHasAmmo && PlayerAction == EPlayerAction::Idle)
 	{
 		EquipedRifle->Reload();
 	}

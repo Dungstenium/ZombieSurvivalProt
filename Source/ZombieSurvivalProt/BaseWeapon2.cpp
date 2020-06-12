@@ -15,6 +15,8 @@
 
 ABaseWeapon2::ABaseWeapon2()
 {
+	PrimaryActorTick.bCanEverTick = true;
+
 	FirearmMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	RootComponent = FirearmMesh;
 
@@ -41,11 +43,33 @@ void ABaseWeapon2::BeginPlay()
 	ActualReserveAmmo = MaxReserveAmmo;
 }
 
+void ABaseWeapon2::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (Timer > 0 && Timer < ShotDelay)
+	{
+		Timer += DeltaSeconds;
+
+		if (Player->PlayerAction != EPlayerAction::Idle)
+		{
+			Player->PlayerAction = EPlayerAction::Shooting;
+		}
+	}
+	else if (Timer >= ShotDelay && Player->PlayerAction == EPlayerAction::Shooting)
+	{
+		Player->PlayerAction = EPlayerAction::Idle;
+		Timer = 0.0f;
+	}
+}
+
 void ABaseWeapon2::Shoot()
 {
 	if (bHasAmmo)
 	{
 		ReduceAmmoPerShot();
+		Timer += 0.01f;
+		Player->PlayerAction = EPlayerAction::Shooting;
 
 		const FRotator SpawnRotation = GuideArrow->GetComponentRotation();
 		const FVector SpawnLocation = GuideArrow->GetComponentLocation();
@@ -94,25 +118,24 @@ void ABaseWeapon2::Shoot()
 					EAttachLocation::KeepWorldPosition,
 					60.0f);
 			}
-
 		}
 
-		if (FireSound != NULL)
+		if (FireSound)
 		{
 			UGameplayStatics::PlaySoundAtLocation(this, FireSound, GuideArrow->GetComponentLocation());
 		}
 
-		if (FireAnimation != NULL && Player)
+		if (FireAnimation && Player)
 		{
 			// Get the animation object for the arms mesh OF THE PLAYER
 			UAnimInstance* AnimInstance = Player->GetMesh1P()->GetAnimInstance();
-			if (AnimInstance != NULL)
+			if (AnimInstance)
 			{
 				AnimInstance->Montage_Play(FireAnimation, 1.f);
 			}
 		}
 
-		if (MuzzleFlash != NULL)
+		if (MuzzleFlash)
 		{
 			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SpawnLocation, SpawnRotation, true);
 		}
