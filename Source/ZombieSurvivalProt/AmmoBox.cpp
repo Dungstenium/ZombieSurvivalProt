@@ -28,9 +28,9 @@ void AAmmoBox::Tick(float DeltaSeconds)
 			Player->EquipedRifle->ReplenishAmmo();	
 			Player->DeactivateInteractionWithObject();
 
-			if (FireSound)
+			if (RearmSound)
 			{
-				UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+				UGameplayStatics::PlaySoundAtLocation(this, RearmSound, GetActorLocation());
 			}
 
 			if (RearmAnimation && Player)
@@ -47,18 +47,22 @@ void AAmmoBox::Tick(float DeltaSeconds)
 
 		if (RearmAnimation)
 		{
-			if (Timer > 0)
+			if (Timer >= RearmAnimation->GetPlayLength())
+			{
+				Player->PlayerAction = EPlayerAction::Idle;
+				Timer = 0.0f;
+				if (!PlayerInReach)
+				{
+					SetActorTickEnabled(false);
+				}
+			}
+			else if (Timer > 0)
 			{
 				if (Timer <= 0.1f)
 				{
 					Player->PlayerAction = EPlayerAction::Interacting;
 				}
 				Timer += DeltaSeconds;
-			}
-			else if (Timer >= RearmAnimation->GetPlayLength())
-			{
-				Player->PlayerAction = EPlayerAction::Idle;
-				Timer = 0.0f;
 			}
 		}
 	}
@@ -69,8 +73,7 @@ void AAmmoBox::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Trigger->OnComponentBeginOverlap.AddDynamic(this, &AAmmoBox::OnOverlapBegin);
-	Trigger->OnComponentEndOverlap.AddDynamic(this, &AAmmoBox::OnOverlapEnd);
+	SetActorTickEnabled(false);
 }
 
 void AAmmoBox::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -81,6 +84,7 @@ void AAmmoBox::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Other
 	{
 		Player = Cast<AZombieSurvivalProtCharacter>(OtherActor);
 		PlayerInReach = true;
+		SetActorTickEnabled(true);
 	}
 }
 
@@ -91,5 +95,10 @@ void AAmmoBox::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherAc
 	if (OtherActor->IsA<AZombieSurvivalProtCharacter>())
 	{
 		PlayerInReach = false;
+
+		if (Player->PlayerAction == EPlayerAction::Idle)
+		{
+			SetActorTickEnabled(false);
+		}
 	}
 }

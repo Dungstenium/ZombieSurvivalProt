@@ -58,22 +58,27 @@ void ABarricadeSpot::Tick(float DeltaSeconds)
 		if(PercentBarricadeLife >= 0.2f && WoodPlank01 && !WoodPlank01->IsVisible())
 		{
 			WoodPlank01->SetVisibility(true);
+			WoodPlank01->SetCollisionProfileName(FName("BlockAllDynamic"));
 		}
 		else if (PercentBarricadeLife >= 0.4f && WoodPlank02 && !WoodPlank02->IsVisible())
 		{
 			WoodPlank02->SetVisibility(true);
+			WoodPlank02->SetCollisionProfileName(FName("BlockAllDynamic"));
 		}
 		else if (PercentBarricadeLife >= 0.6f && WoodPlank03 && !WoodPlank03->IsVisible())
 		{
 			WoodPlank03->SetVisibility(true);
+			WoodPlank03->SetCollisionProfileName(FName("BlockAllDynamic"));
 		}
 		else if (PercentBarricadeLife >= 0.8f && WoodPlank04 && !WoodPlank04->IsVisible())
 		{
 			WoodPlank04->SetVisibility(true);
+			WoodPlank04->SetCollisionProfileName(FName("BlockAllDynamic"));
 		}
 		else if (PercentBarricadeLife >= 1.0f && WoodPlank05 && !WoodPlank05->IsVisible())
 		{
 			WoodPlank05->SetVisibility(true);
+			WoodPlank05->SetCollisionProfileName(FName("BlockAllDynamic"));
 		}
 
 		UE_LOG(LogTemp, Warning, TEXT("%f"), PercentBarricadeLife);
@@ -89,7 +94,6 @@ void ABarricadeSpot::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor*
 		Player = Cast<AZombieSurvivalProtCharacter>(OtherActor);
 		SetActorTickEnabled(true);
 		bPlayerInReach = true;
-
 	}
 }
 
@@ -101,6 +105,5 @@ void ABarricadeSpot::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* O
 	{
 		SetActorTickEnabled(false);
 		bPlayerInReach = false;
-
 	}
 }

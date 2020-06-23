@@ -46,7 +46,7 @@ class ZOMBIESURVIVALPROT_API AAmmoBox : public AInteractable
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	class USoundBase* FireSound;
+	class USoundBase* RearmSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	class UAnimMontage* RearmAnimation;
