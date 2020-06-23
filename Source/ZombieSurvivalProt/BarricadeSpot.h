@@ -58,4 +58,9 @@ class ZOMBIESURVIVALPROT_API ABarricadeSpot : public AInteractable
 	virtual void BeginPlay() override;
 
 	virtual void Tick(float DeltaSeconds) override;
+
+public:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Reloading)
+	class USoundBase* PlaceBarricadeSound;
 };

@@ -3,6 +3,7 @@
 
 #include "BarricadeSpot.h"
 #include "Components/StaticMeshComponent.h" 
+#include "Kismet/GameplayStatics.h"
 #include "ZombieSurvivalProtCharacter.h"
 
 
@@ -59,26 +60,36 @@ void ABarricadeSpot::Tick(float DeltaSeconds)
 		{
 			WoodPlank01->SetVisibility(true);
 			WoodPlank01->SetCollisionProfileName(FName("BlockAllDynamic"));
+
+			UGameplayStatics::PlaySoundAtLocation(this, PlaceBarricadeSound, GetActorLocation());
 		}
 		else if (PercentBarricadeLife >= 0.4f && WoodPlank02 && !WoodPlank02->IsVisible())
 		{
 			WoodPlank02->SetVisibility(true);
 			WoodPlank02->SetCollisionProfileName(FName("BlockAllDynamic"));
+
+			UGameplayStatics::PlaySoundAtLocation(this, PlaceBarricadeSound, GetActorLocation());
 		}
 		else if (PercentBarricadeLife >= 0.6f && WoodPlank03 && !WoodPlank03->IsVisible())
 		{
 			WoodPlank03->SetVisibility(true);
 			WoodPlank03->SetCollisionProfileName(FName("BlockAllDynamic"));
+
+			UGameplayStatics::PlaySoundAtLocation(this, PlaceBarricadeSound, GetActorLocation());
 		}
 		else if (PercentBarricadeLife >= 0.8f && WoodPlank04 && !WoodPlank04->IsVisible())
 		{
 			WoodPlank04->SetVisibility(true);
 			WoodPlank04->SetCollisionProfileName(FName("BlockAllDynamic"));
+
+			UGameplayStatics::PlaySoundAtLocation(this, PlaceBarricadeSound, GetActorLocation());
 		}
 		else if (PercentBarricadeLife >= 1.0f && WoodPlank05 && !WoodPlank05->IsVisible())
 		{
 			WoodPlank05->SetVisibility(true);
 			WoodPlank05->SetCollisionProfileName(FName("BlockAllDynamic"));
+
+			UGameplayStatics::PlaySoundAtLocation(this, PlaceBarricadeSound, GetActorLocation());
 		}
 
 		UE_LOG(LogTemp, Warning, TEXT("%f"), PercentBarricadeLife);
