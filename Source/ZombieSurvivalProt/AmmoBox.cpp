@@ -28,16 +28,16 @@ void AAmmoBox::Tick(float DeltaSeconds)
 			Player->EquipedRifle->ReplenishAmmo();	
 			Player->DeactivateInteractionWithObject();
 
-			if (FireSound != NULL)
+			if (FireSound)
 			{
 				UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
 			}
 
-			if (RearmAnimation != NULL && Player)
+			if (RearmAnimation && Player)
 			{
 				// Get the animation object for the arms mesh OF THE PLAYER
 				UAnimInstance* AnimInstance = Player->GetMesh1P()->GetAnimInstance();
-				if (AnimInstance != NULL)
+				if (AnimInstance)
 				{
 					AnimInstance->Montage_Play(RearmAnimation, 1.f);
 				}
@@ -45,20 +45,20 @@ void AAmmoBox::Tick(float DeltaSeconds)
 			Timer += DeltaSeconds;
 		}
 
-		if (RearmAnimation != NULL)
+		if (RearmAnimation)
 		{
-			if (Timer >= RearmAnimation->GetPlayLength())
+			if (Timer > 0)
 			{
-				Player->PlayerAction = EPlayerAction::Idle;
-				Timer = 0.0f;
-			}
-			else if (Timer > 0)
-			{
-				if (Timer <= 0.3f)
+				if (Timer <= 0.1f)
 				{
 					Player->PlayerAction = EPlayerAction::Interacting;
 				}
 				Timer += DeltaSeconds;
+			}
+			else if (Timer >= RearmAnimation->GetPlayLength())
+			{
+				Player->PlayerAction = EPlayerAction::Idle;
+				Timer = 0.0f;
 			}
 		}
 	}
@@ -81,7 +81,6 @@ void AAmmoBox::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Other
 	{
 		Player = Cast<AZombieSurvivalProtCharacter>(OtherActor);
 		PlayerInReach = true;
-		UE_LOG(LogTemp,Warning, TEXT("entered"))
 	}
 }
 
@@ -92,6 +91,5 @@ void AAmmoBox::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherAc
 	if (OtherActor->IsA<AZombieSurvivalProtCharacter>())
 	{
 		PlayerInReach = false;
-		UE_LOG(LogTemp, Warning, TEXT("left"))
 	}
 }

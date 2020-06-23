@@ -165,7 +165,6 @@ void AZombieSurvivalProtCharacter::Reload()
 {
 	if (PlayerAction == EPlayerAction::Idle)
 	{
-		PlayerAction = EPlayerAction::Reloading;
 		EquipedRifle->Reload();
 	}
 }

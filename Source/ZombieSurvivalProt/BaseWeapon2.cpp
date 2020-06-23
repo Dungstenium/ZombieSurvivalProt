@@ -182,9 +182,10 @@ void ABaseWeapon2::ReduceAmmoPerShot()
 
 void ABaseWeapon2::Reload()
 {
-	if (ActualReserveAmmo > 0)
+	if (ActualReserveAmmo > 0 && AmmoCounter != WeaponMagazinSize)
 	{
 		Timer += 0.01f;
+		Player->PlayerAction = EPlayerAction::Reloading;
 
 		int32 AmmoDifference = WeaponMagazinSize - AmmoCounter;
 
@@ -213,7 +214,6 @@ void ABaseWeapon2::Reload()
 				AnimInstance->Montage_Play(ReloadAnimation, 1.f);
 			}
 		}
-
 		bHasAmmo = true;
 	}
 	else
