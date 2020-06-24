@@ -64,7 +64,7 @@ public:
 	
 	AZombieSurvivalProtCharacter();
 	
-	bool GetPlayerInteraction() const;
+	bool PlayerIsInteracting() const;
 	void DeactivateInteractionWithObject();
 
 	UPROPERTY(BlueprintReadWrite, Meta = (AllowPrivateAccess = true))

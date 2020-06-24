@@ -54,6 +54,7 @@ class ZOMBIESURVIVALPROT_API ABarricadeSpot : public AInteractable
 	class AZombieSurvivalProtCharacter* Player = NULL;
 
 	bool bPlayerInReach = false;
+	bool bIsBuildingBarricade = false;
 
 	virtual void BeginPlay() override;
 

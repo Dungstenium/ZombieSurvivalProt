@@ -135,7 +135,10 @@ void AZombieSurvivalProtCharacter::SetupPlayerInputComponent(class UInputCompone
 
 void AZombieSurvivalProtCharacter::InteractWithObject()
 {
-	bPlayerInteracted = true;
+	if (PlayerAction == EPlayerAction::Idle)
+	{
+		bPlayerInteracted = true;
+	}
 }
 
 void AZombieSurvivalProtCharacter::DeactivateInteractionWithObject()
@@ -143,7 +146,7 @@ void AZombieSurvivalProtCharacter::DeactivateInteractionWithObject()
 	bPlayerInteracted = false;
 }
 
-bool AZombieSurvivalProtCharacter::GetPlayerInteraction() const
+bool AZombieSurvivalProtCharacter::PlayerIsInteracting() const
 {
 	return bPlayerInteracted;
 }

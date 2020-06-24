@@ -46,9 +46,21 @@ void ABarricadeSpot::Tick(float DeltaSeconds)
 
 	if (Player)
 	{
-		if (Player->PlayerAction == EPlayerAction::Idle && Player->GetPlayerInteraction() && bPlayerInReach)
+		if (Player->PlayerAction == EPlayerAction::Idle && Player->PlayerIsInteracting() && bPlayerInReach && PercentBarricadeLife < 1.0f)
 		{
 			ActualBarricadeLife += DeltaSeconds * 10.0f;
+
+			bIsBuildingBarricade = true;
+			Player->PlayerAction = EPlayerAction::Interacting;
+		}
+		else if (Player->PlayerAction == EPlayerAction::Interacting && bIsBuildingBarricade && Player->PlayerIsInteracting() && bPlayerInReach && PercentBarricadeLife < 1.0f)
+		{
+			ActualBarricadeLife += DeltaSeconds * 10.0f;
+		}
+		else if (!Player->PlayerIsInteracting() && bPlayerInReach && bIsBuildingBarricade)
+		{
+			bIsBuildingBarricade = false;
+			Player->PlayerAction = EPlayerAction::Idle;
 		}
 
 		if (PercentBarricadeLife < 1)
@@ -90,6 +102,8 @@ void ABarricadeSpot::Tick(float DeltaSeconds)
 			WoodPlank05->SetCollisionProfileName(FName("BlockAllDynamic"));
 
 			UGameplayStatics::PlaySoundAtLocation(this, PlaceBarricadeSound, GetActorLocation());
+
+			Player->PlayerAction = EPlayerAction::Idle;
 		}
 
 		UE_LOG(LogTemp, Warning, TEXT("%f"), PercentBarricadeLife);

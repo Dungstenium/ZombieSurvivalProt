@@ -23,7 +23,7 @@ void AAmmoBox::Tick(float DeltaSeconds)
 
 	if (Player)
 	{
-		if (Player->PlayerAction == EPlayerAction::Idle && Player->GetPlayerInteraction() && PlayerInReach && !Player->EquipedRifle->bIsFullAmmo)
+		if (Player->PlayerAction == EPlayerAction::Idle && Player->PlayerIsInteracting() && PlayerInReach && !Player->EquipedRifle->bIsFullAmmo)
 		{
 			Player->EquipedRifle->ReplenishAmmo();	
 			Player->DeactivateInteractionWithObject();
