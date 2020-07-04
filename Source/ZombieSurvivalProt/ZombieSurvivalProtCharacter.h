@@ -60,6 +60,11 @@ private:
 
 	void InteractWithObject();
 
+	void ChangeToWeapon1();
+	void ChangeToWeapon2();
+	void ChangeToWeapon3();
+	void ChangeToPreviousWeapon();
+
 public:
 	
 	AZombieSurvivalProtCharacter();
@@ -68,7 +73,13 @@ public:
 	void DeactivateInteractionWithObject();
 
 	UPROPERTY(BlueprintReadWrite, Meta = (AllowPrivateAccess = true))
-	class ABaseWeapon2* EquipedRifle;
+	class ABaseWeapon2* EquipedWeapon;
+
+	UPROPERTY(BlueprintReadWrite, Meta = (AllowPrivateAccess = true))
+	class ABaseWeapon2* Rifle;
+
+	UPROPERTY(BlueprintReadWrite, Meta = (AllowPrivateAccess = true))
+	class ABaseWeapon2* Pistol;
 
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
@@ -127,6 +138,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = true))
 	TSubclassOf<ABaseWeapon2> RifleBP;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Meta = (AllowPrivateAccess = true))
+	TSubclassOf<ABaseWeapon2> PistolBP;
 
 	UPROPERTY(EditAnywhere)
 	class UCurveFloat* TimelineCurve;

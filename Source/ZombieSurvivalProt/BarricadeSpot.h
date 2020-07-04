@@ -15,7 +15,7 @@ class ZOMBIESURVIVALPROT_API ABarricadeSpot : public AInteractable
 	GENERATED_BODY()
 
 
-	ABarricadeSpot();
+		ABarricadeSpot();
 
 	UFUNCTION()
 		virtual void OnOverlapEnd(
@@ -35,6 +35,17 @@ class ZOMBIESURVIVALPROT_API ABarricadeSpot : public AInteractable
 	float MaxBarricadeLife = 100.0f;
 	float ActualBarricadeLife;
 	float PercentBarricadeLife;
+	float AnimationTimer = 0.0f;
+	bool bFinishedAnimation[5];
+
+	UPROPERTY(EditAnywhere)
+	FVector BarricadeOffset;
+
+	FVector EndingPosition[5];
+	FRotator EndingRotation[5];
+
+	UPROPERTY(VisibleAnywhere)
+	class UStaticMeshComponent* InitialWoodPlank;
 
 	UPROPERTY(VisibleAnywhere)
 	class UStaticMeshComponent* WoodPlank01;
@@ -47,9 +58,6 @@ class ZOMBIESURVIVALPROT_API ABarricadeSpot : public AInteractable
 
 	UPROPERTY(VisibleAnywhere)
 	class UStaticMeshComponent* WoodPlank04;
-
-	UPROPERTY(VisibleAnywhere)
-	class UStaticMeshComponent* WoodPlank05;
 
 	class AZombieSurvivalProtCharacter* Player = NULL;
 
@@ -64,4 +72,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Reloading)
 	class USoundBase* PlaceBarricadeSound;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UCameraShake> ShakeCamera;
 };

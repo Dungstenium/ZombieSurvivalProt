@@ -53,11 +53,15 @@ void AZombieSurvivalProtCharacter::BeginPlay()
 
 	//Attach gun mesh component to Skeleton, doing it here because the skeleton is not yet created in the constructor
 	FActorSpawnParameters SpawnParams;
-	EquipedRifle = GetWorld()->SpawnActor<ABaseWeapon2>(RifleBP, GetTransform(), SpawnParams);
 
-	if (EquipedRifle)
+	Rifle = GetWorld()->SpawnActor<ABaseWeapon2>(RifleBP, GetTransform(), SpawnParams);
+	Pistol = GetWorld()->SpawnActor<ABaseWeapon2>(PistolBP, GetTransform(), SpawnParams);
+
+	EquipedWeapon = Rifle;
+
+	if (EquipedWeapon)
 	{
-		EquipedRifle->FirearmMesh->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+		EquipedWeapon->FirearmMesh->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
 	}
 
 	ActiveWeapon = EActiveWeapon::Rifle;
@@ -121,6 +125,11 @@ void AZombieSurvivalProtCharacter::SetupPlayerInputComponent(class UInputCompone
 	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &AZombieSurvivalProtCharacter::InteractWithObject);
 	PlayerInputComponent->BindAction("Interact", IE_Released, this, &AZombieSurvivalProtCharacter::DeactivateInteractionWithObject);
 
+	PlayerInputComponent->BindAction("Weapon1", IE_Pressed, this, &AZombieSurvivalProtCharacter::ChangeToWeapon1);
+	PlayerInputComponent->BindAction("Weapon2", IE_Pressed, this, &AZombieSurvivalProtCharacter::ChangeToWeapon2);
+	PlayerInputComponent->BindAction("Weapon3", IE_Pressed, this, &AZombieSurvivalProtCharacter::ChangeToWeapon3);
+	PlayerInputComponent->BindAction("PreviousWeapon", IE_Pressed, this, &AZombieSurvivalProtCharacter::ChangeToPreviousWeapon);
+
 	PlayerInputComponent->BindAxis("MoveForward", this, &AZombieSurvivalProtCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AZombieSurvivalProtCharacter::MoveRight);
 
@@ -141,6 +150,38 @@ void AZombieSurvivalProtCharacter::InteractWithObject()
 	}
 }
 
+void AZombieSurvivalProtCharacter::ChangeToWeapon1()
+{
+	if (EquipedWeapon != Rifle)
+	{
+		Rifle->SetActorRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+		EquipedWeapon = Rifle;
+		EquipedWeapon->FirearmMesh->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+		Pistol->SetActorRelativeLocation(FVector(-30.0f, 0.0f, 100.0f));
+	}
+}
+
+void AZombieSurvivalProtCharacter::ChangeToWeapon2()
+{
+	if (EquipedWeapon != Pistol)
+	{
+		Pistol->SetActorRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
+		EquipedWeapon = Pistol;
+		EquipedWeapon->FirearmMesh->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
+		Rifle->SetActorRelativeLocation(FVector(-30.0f, 0.0f, 100.0f));
+	}
+}
+
+void AZombieSurvivalProtCharacter::ChangeToWeapon3()
+{
+
+}
+
+void AZombieSurvivalProtCharacter::ChangeToPreviousWeapon()
+{
+
+}
+
 void AZombieSurvivalProtCharacter::DeactivateInteractionWithObject()
 {
 	bPlayerInteracted = false;
@@ -155,7 +196,7 @@ void AZombieSurvivalProtCharacter::OnFire()
 {
 	if (bHasAmmo && PlayerAction == EPlayerAction::Idle)
 	{
-		EquipedRifle->Shoot();
+		EquipedWeapon->Shoot();
 		PlayerAction = EPlayerAction::Shooting;
 	}
 	else if (!bHasAmmo && PlayerAction == EPlayerAction::Idle)
@@ -168,7 +209,7 @@ void AZombieSurvivalProtCharacter::Reload()
 {
 	if (PlayerAction == EPlayerAction::Idle)
 	{
-		EquipedRifle->Reload();
+		EquipedWeapon->Reload();
 	}
 }
 
