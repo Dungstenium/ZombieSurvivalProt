@@ -65,18 +65,18 @@ void ABarricadeSpot::Tick(float DeltaSeconds)
 
 	if (Player)
 	{
-		if (Player->PlayerAction == EPlayerAction::Idle && Player->PlayerIsInteracting() && bPlayerInReach && PercentBarricadeLife < 1.0f)
+		if (Player->PlayerAction == EPlayerAction::Idle && Player->PressedInteractButton() && bPlayerInReach && PercentBarricadeLife < 1.0f)
 		{
 			ActualBarricadeLife += DeltaSeconds * 10.0f;
 
 			bIsBuildingBarricade = true;
 			Player->PlayerAction = EPlayerAction::Interacting;
 		}
-		else if (Player->PlayerAction == EPlayerAction::Interacting && bIsBuildingBarricade && Player->PlayerIsInteracting() && bPlayerInReach && PercentBarricadeLife < 1.0f)
+		else if (Player->PlayerAction == EPlayerAction::Interacting && bIsBuildingBarricade && Player->PressedInteractButton() && bPlayerInReach && PercentBarricadeLife < 1.0f)
 		{
 			ActualBarricadeLife += DeltaSeconds * 10.0f;
 		}
-		else if (!Player->PlayerIsInteracting() && bPlayerInReach && bIsBuildingBarricade)
+		else if (!Player->PressedInteractButton() && bPlayerInReach && bIsBuildingBarricade)
 		{
 			bIsBuildingBarricade = false;
 			Player->PlayerAction = EPlayerAction::Idle;

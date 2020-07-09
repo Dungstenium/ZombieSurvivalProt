@@ -187,7 +187,7 @@ void AZombieSurvivalProtCharacter::DeactivateInteractionWithObject()
 	bPlayerInteracted = false;
 }
 
-bool AZombieSurvivalProtCharacter::PlayerIsInteracting() const
+bool AZombieSurvivalProtCharacter::PressedInteractButton() const
 {
 	return bPlayerInteracted;
 }

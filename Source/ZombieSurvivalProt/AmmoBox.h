@@ -6,16 +6,15 @@
 #include "Interactable.h"
 #include "AmmoBox.generated.h"
 
-/**
- * 
- */
-
 
 UCLASS()
 class ZOMBIESURVIVALPROT_API AAmmoBox : public AInteractable
 {
 	GENERATED_BODY()
 
+
+	AAmmoBox();
+	void FinishRearming();
 
 	UFUNCTION()
 	virtual void OnOverlapEnd(
@@ -32,17 +31,18 @@ class ZOMBIESURVIVALPROT_API AAmmoBox : public AInteractable
 			int32 OtherBodyIndex, bool bFromSweep,
 			const FHitResult& SweepResult) override;
 
-	AAmmoBox();
 
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
 
 	bool PlayerInReach = false;
+	bool bFinishedReaming = true;
 
 	float Timer = 0.0f;
 
 	class AZombieSurvivalProtCharacter* Player = NULL;
 
+	FTimerHandle AmmoBoxTimerHandle;
 protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)

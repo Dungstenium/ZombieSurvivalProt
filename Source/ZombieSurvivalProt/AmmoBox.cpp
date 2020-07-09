@@ -8,13 +8,20 @@
 #include "Components/BoxComponent.h" 
 #include "Components/InputComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "TimerManager.h" 
 #include "ZombieSurvivalProtCharacter.h"
 
 
 AAmmoBox::AAmmoBox()
 {
 	PrimaryActorTick.bCanEverTick = true;
+}
 
+void AAmmoBox::BeginPlay()
+{
+	Super::BeginPlay();
+
+	SetActorTickEnabled(false);
 }
 
 void AAmmoBox::Tick(float DeltaSeconds)
@@ -23,10 +30,13 @@ void AAmmoBox::Tick(float DeltaSeconds)
 
 	if (Player)
 	{
-		if (Player->PlayerAction == EPlayerAction::Idle && Player->PlayerIsInteracting() && PlayerInReach && !Player->EquipedWeapon->bIsFullAmmo)
+		if (Player->PlayerAction == EPlayerAction::Idle && Player->PressedInteractButton() && PlayerInReach && !Player->EquipedWeapon->bIsFullAmmo)
 		{
 			Player->EquipedWeapon->ReplenishAmmo();	
 			Player->DeactivateInteractionWithObject();
+			Player->PlayerAction = EPlayerAction::Interacting;
+
+			GetWorld()->GetTimerManager().SetTimer(AmmoBoxTimerHandle, this, &AAmmoBox::FinishRearming, RearmAnimation->GetPlayLength(), false);
 
 			if (RearmSound)
 			{
@@ -42,38 +52,17 @@ void AAmmoBox::Tick(float DeltaSeconds)
 					AnimInstance->Montage_Play(RearmAnimation, 1.f);
 				}
 			}
-			Timer += DeltaSeconds;
-		}
-
-		if (RearmAnimation)
-		{
-			if (Timer >= RearmAnimation->GetPlayLength())
-			{
-				Player->PlayerAction = EPlayerAction::Idle;
-				Timer = 0.0f;
-				if (!PlayerInReach)
-				{
-					SetActorTickEnabled(false);
-				}
-			}
-			else if (Timer > 0)
-			{
-				if (Timer <= 0.1f)
-				{
-					Player->PlayerAction = EPlayerAction::Interacting;
-				}
-				Timer += DeltaSeconds;
-			}
 		}
 	}
-
 }
 
-void AAmmoBox::BeginPlay()
+void AAmmoBox::FinishRearming()
 {
-	Super::BeginPlay();
-
-	SetActorTickEnabled(false);
+	Player->PlayerAction = EPlayerAction::Idle;
+	if (!PlayerInReach)
+	{
+		SetActorTickEnabled(false);
+	}
 }
 
 void AAmmoBox::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
