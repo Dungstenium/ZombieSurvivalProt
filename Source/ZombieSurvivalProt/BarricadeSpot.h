@@ -35,11 +35,20 @@ class ZOMBIESURVIVALPROT_API ABarricadeSpot : public AInteractable
 	float MaxBarricadeLife = 100.0f;
 	float ActualBarricadeLife;
 	float PercentBarricadeLife;
-	float AnimationTimer = 0.0f;
 	bool bFinishedAnimation[5];
+	bool bFinishedRotationLap[5];
+	bool bFinishedActualPlank = true;
+	bool bFinishedPreviousPlank = true;
+
+
+	UPROPERTY(EditAnywhere, Category = Properties)
+	float RotationSpeed = 5.0f;
+
+	UPROPERTY(EditAnywhere, Category = Properties)
+	float MoveSpeed = 370.0f;
 
 	UPROPERTY(EditAnywhere)
-	FVector BarricadeOffset;
+	FVector BarricadeOffset = FVector(0.0f, -75.0f, 0.0f);
 
 	FVector EndingPosition[5];
 	FRotator EndingRotation[5];
@@ -67,6 +76,14 @@ class ZOMBIESURVIVALPROT_API ABarricadeSpot : public AInteractable
 	virtual void BeginPlay() override;
 
 	virtual void Tick(float DeltaSeconds) override;
+
+	void UpdatePlanks(float DeltaSeconds);
+
+	void UpdateBarricadeLife();
+
+	void ActivateBarricade(int32 i, UStaticMeshComponent* ActualBarricade);
+
+	void AnimateBarricade(float DeltaSeconds, int32 i, UStaticMeshComponent* ActualBarricade);
 
 public:
 

@@ -55,6 +55,7 @@ void ABarricadeSpot::BeginPlay()
 	for (int32 i : bFinishedAnimation)
 	{
 		bFinishedAnimation[i] = false;
+		bFinishedRotationLap[i] = false;
 	}
 }
 
@@ -81,88 +82,124 @@ void ABarricadeSpot::Tick(float DeltaSeconds)
 			Player->PlayerAction = EPlayerAction::Idle;
 		}
 
-		if (PercentBarricadeLife < 1)
+		UpdateBarricadeLife();
+
+		UpdatePlanks(DeltaSeconds);
+
+		if (!bPlayerInReach && bFinishedActualPlank && bFinishedPreviousPlank)
 		{
-			PercentBarricadeLife = ActualBarricadeLife / MaxBarricadeLife;
-			
-			if (!InteractableVisualizer->IsVisible())
-			{
-				InteractableVisualizer->SetVisibility(true);
-			}
+			SetActorTickEnabled(false);
 		}
+	}
+}
 
-		if(PercentBarricadeLife >= 0.2f && InitialWoodPlank && !InitialWoodPlank->IsVisible())
+void ABarricadeSpot::UpdateBarricadeLife()
+{
+	if (PercentBarricadeLife < 1)
+	{
+		PercentBarricadeLife = ActualBarricadeLife / MaxBarricadeLife;
+
+		if (!InteractableVisualizer->IsVisible())
 		{
-			InitialWoodPlank->SetVisibility(true);
-			InitialWoodPlank->SetCollisionProfileName(FName("BlockAllDynamic"));
-
-			InitialWoodPlank->SetWorldLocation(EndingPosition[0] - BarricadeOffset);
-			InitialWoodPlank->AddWorldRotation(FRotator(5.0f, 0.0f, 0.0f));
-
-			UE_LOG(LogTemp, Warning, TEXT("%s"), *InitialWoodPlank->GetComponentRotation().ToString())
-
-			UGameplayStatics::PlaySoundAtLocation(this, PlaceBarricadeSound, GetActorLocation());
+			InteractableVisualizer->SetVisibility(true);
 		}
-		else if (PercentBarricadeLife < 0.4f && InitialWoodPlank->IsVisible())
+	}
+	else if (PercentBarricadeLife >= 1.0f && InteractableVisualizer->IsVisible())
+	{
+		InteractableVisualizer->SetVisibility(false);
+	}
+}
+
+void ABarricadeSpot::UpdatePlanks(float DeltaSeconds)
+{
+	if (PercentBarricadeLife >= 0.2f && InitialWoodPlank && !InitialWoodPlank->IsVisible())
+	{
+		ActivateBarricade(0, InitialWoodPlank);
+	}
+	else if (PercentBarricadeLife < 0.4f && InitialWoodPlank->IsVisible())
+	{
+		AnimateBarricade(DeltaSeconds, 0, InitialWoodPlank);
+	}
+	else if (PercentBarricadeLife >= 0.4f && WoodPlank01 && !WoodPlank01->IsVisible())
+	{
+		ActivateBarricade(1, WoodPlank01);
+		bFinishedPreviousPlank = true;
+	}
+	else if (PercentBarricadeLife < 0.6f && WoodPlank01->IsVisible())
+	{
+		AnimateBarricade(DeltaSeconds, 1, WoodPlank01);
+	}
+	else if (PercentBarricadeLife >= 0.6f && WoodPlank02 && !WoodPlank02->IsVisible())
+	{
+		ActivateBarricade(2, WoodPlank02);
+		bFinishedPreviousPlank = true;
+	}
+	else if (PercentBarricadeLife < 0.8f && WoodPlank02->IsVisible())
+	{
+		AnimateBarricade(DeltaSeconds, 2, WoodPlank02);
+	}
+	else if (PercentBarricadeLife >= 0.8f && WoodPlank03 && !WoodPlank03->IsVisible())
+	{
+		ActivateBarricade(3, WoodPlank03);
+		bFinishedPreviousPlank = true;
+	}
+	else if (PercentBarricadeLife < 1.0f && WoodPlank03->IsVisible())
+	{
+		AnimateBarricade(DeltaSeconds, 3, WoodPlank03);
+	}
+	else if (PercentBarricadeLife >= 1.0f && WoodPlank04 && !WoodPlank04->IsVisible())
+	{
+		ActivateBarricade(4, WoodPlank04);
+		bFinishedPreviousPlank = true;
+
+		InteractableVisualizer->SetVisibility(false);
+		Player->PlayerAction = EPlayerAction::Idle;
+	}
+	else if (PercentBarricadeLife < 1.2f && WoodPlank04->IsVisible())
+	{
+		AnimateBarricade(DeltaSeconds, 4, WoodPlank04);
+	}
+}
+
+void ABarricadeSpot::ActivateBarricade(int32 i, UStaticMeshComponent* ActualBarricade)
+{
+	ActualBarricade->SetVisibility(true);
+	ActualBarricade->SetCollisionProfileName(FName("BlockAllDynamic"));
+
+	ActualBarricade->SetWorldLocation(EndingPosition[i] - FVector(0.0f, -75.0f, 0.0f));
+
+	ActualBarricade->AddWorldRotation(FRotator(RotationSpeed, 0.0f, 0.0f));
+
+	UGameplayStatics::PlaySoundAtLocation(this, PlaceBarricadeSound, GetActorLocation());
+
+	bFinishedActualPlank = false;
+}
+
+void ABarricadeSpot::AnimateBarricade(float DeltaSeconds, int32 i, UStaticMeshComponent* ActualBarricade)
+{
+	if (ActualBarricade->GetComponentRotation().Pitch <= EndingRotation[i].Pitch + 4.0f && ActualBarricade->GetComponentRotation().Pitch >= EndingRotation[i].Pitch - 4.0f && bFinishedRotationLap[i])
+	{
+		if (ActualBarricade->GetComponentLocation().Y < EndingPosition[i].Y + 5.0f && !bFinishedAnimation[i] && ShakeCamera)
 		{
-			if (InitialWoodPlank->GetComponentRotation().Pitch <= EndingRotation[0].Pitch + 4.0f && InitialWoodPlank->GetComponentRotation().Pitch >= EndingRotation[0].Pitch - 4.0f)
-			{
-
-				if (InitialWoodPlank->GetComponentLocation().Y < EndingPosition[0].Y + 5.0f && !bFinishedAnimation[0] && ShakeCamera)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("aaa"));
-					bFinishedAnimation[0] = true;
-					GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayCameraShake(ShakeCamera, 1.0f);
-				}
-				else if (!bFinishedAnimation[0])
-				{
-					FVector ActualPosition = InitialWoodPlank->GetComponentLocation();
-					ActualPosition.Y = FMath::FInterpConstantTo(ActualPosition.Y, EndingPosition[0].Y, DeltaSeconds, 400.0f);
-					InitialWoodPlank->SetWorldLocation(ActualPosition);
-					UE_LOG(LogTemp, Warning, TEXT("Acutal:%f, Ending: %f"), ActualPosition.Y, EndingPosition[0].Y);
-
-				}
-			}
-			else
-			{
-				InitialWoodPlank->AddWorldRotation(FRotator(5.0f, 0.0f, 0.0f));
-			}
+			bFinishedAnimation[i] = true;
+			GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayCameraShake(ShakeCamera, 1.0f);
+			bFinishedActualPlank = true;
+			bFinishedPreviousPlank = true;
 		}
-		else if (PercentBarricadeLife >= 0.4f && WoodPlank01 && !WoodPlank01->IsVisible())
+		else if (!bFinishedAnimation[i])
 		{
-			WoodPlank01->SetVisibility(true);
-			WoodPlank01->SetCollisionProfileName(FName("BlockAllDynamic"));
-
-			UGameplayStatics::PlaySoundAtLocation(this, PlaceBarricadeSound, GetActorLocation());
+			FVector ActualPosition = ActualBarricade->GetComponentLocation();
+			ActualPosition.Y -= DeltaSeconds * MoveSpeed;
+			ActualBarricade->SetWorldLocation(ActualPosition);
 		}
-		else if (PercentBarricadeLife >= 0.6f && WoodPlank02 && !WoodPlank02->IsVisible())
+	}
+	else
+	{
+		ActualBarricade->AddWorldRotation(FRotator(RotationSpeed, 0.0f, 0.0f));
+
+		if (ActualBarricade->GetComponentRotation().Pitch <= -70.0f)
 		{
-			WoodPlank02->SetVisibility(true);
-			WoodPlank02->SetCollisionProfileName(FName("BlockAllDynamic"));
-
-			UGameplayStatics::PlaySoundAtLocation(this, PlaceBarricadeSound, GetActorLocation());
-		}
-		else if (PercentBarricadeLife >= 0.8f && WoodPlank03 && !WoodPlank03->IsVisible())
-		{
-			WoodPlank03->SetVisibility(true);
-			WoodPlank03->SetCollisionProfileName(FName("BlockAllDynamic"));
-
-			UGameplayStatics::PlaySoundAtLocation(this, PlaceBarricadeSound, GetActorLocation());
-		}
-		else if (PercentBarricadeLife >= 1.0f && WoodPlank04 && !WoodPlank04->IsVisible())
-		{
-			WoodPlank04->SetVisibility(true);
-			WoodPlank04->SetCollisionProfileName(FName("BlockAllDynamic"));
-
-			UGameplayStatics::PlaySoundAtLocation(this, PlaceBarricadeSound, GetActorLocation());
-
-			InteractableVisualizer->SetVisibility(false);
-
-			Player->PlayerAction = EPlayerAction::Idle;
-		}
-		else if (PercentBarricadeLife >= 1.0f && InteractableVisualizer->IsVisible())
-		{
-			InteractableVisualizer->SetVisibility(false);
+			bFinishedRotationLap[i] = true;
 		}
 	}
 }
@@ -185,7 +222,11 @@ void ABarricadeSpot::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* O
 
 	if (OtherActor->IsA<AZombieSurvivalProtCharacter>())
 	{
-		SetActorTickEnabled(false);
 		bPlayerInReach = false;
+
+		if (bFinishedActualPlank && bFinishedPreviousPlank)
+		{
+			SetActorTickEnabled(false);
+		}
 	}
 }

@@ -10,12 +10,13 @@
 #include "Math/UnrealMathUtility.h"
 #include "Particles/ParticleSystem.h"
 #include "Public/CollisionQueryParams.h"
+#include "TimerManager.h" 
 #include "ZombieSurvivalProtCharacter.h"
 
 
 ABaseWeapon2::ABaseWeapon2()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	FirearmMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	RootComponent = FirearmMesh;
@@ -43,49 +44,16 @@ void ABaseWeapon2::BeginPlay()
 	ActualReserveAmmo = MaxReserveAmmo;
 }
 
-void ABaseWeapon2::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-
-	if (Timer > 0 && Timer < ShotDelay && Player->PlayerAction == EPlayerAction::Shooting)
-	{
-		Timer += DeltaSeconds;
-
-		if (Player->PlayerAction != EPlayerAction::Shooting)
-		{
-			Player->PlayerAction = EPlayerAction::Shooting;
-		}
-	}
-	else if (Timer >= ShotDelay && Player->PlayerAction == EPlayerAction::Shooting)
-	{
-		Player->PlayerAction = EPlayerAction::Idle;
-		Timer = 0.0f;
-	}
-
-	if (Player->PlayerAction == EPlayerAction::Reloading && Timer > 0 && Timer < ReloadDelay)
-	{
-		Timer += DeltaSeconds;
-
-		if (Player->PlayerAction != EPlayerAction::Reloading)
-		{
-			Player->PlayerAction = EPlayerAction::Reloading;
-		}
-	}
-	else if (Timer >= ReloadDelay && Player->PlayerAction == EPlayerAction::Reloading)
-	{
-		Player->PlayerAction = EPlayerAction::Idle;
-		Timer = 0.0f;
-	}
-}
-
 void ABaseWeapon2::Shoot()
 {
-	if (bHasAmmo)
+	if (bHasAmmo && bCanShoot)
 	{
-		ReduceAmmoPerShot();
-		Player->PlayerAction = EPlayerAction::Shooting;
+		bCanShoot = false;
+		GetWorld()->GetTimerManager().SetTimer(WeaponTimerHandle, this, &ABaseWeapon2::WeaponCanShootAgain, ShotDelay, false);
 
-		Timer += 0.01f;
+		ReduceAmmoPerShot();
+
+		Player->PlayerAction = EPlayerAction::Shooting;
 
 		const FRotator SpawnRotation = GuideArrow->GetComponentRotation();
 		const FVector SpawnLocation = GuideArrow->GetComponentLocation();
@@ -180,11 +148,20 @@ void ABaseWeapon2::ReduceAmmoPerShot()
 	}
 }
 
+void ABaseWeapon2::WeaponCanShootAgain()
+{
+	bCanShoot = true;
+	Player->PlayerAction = EPlayerAction::Idle;
+	GetWorld()->GetTimerManager().ClearTimer(WeaponTimerHandle);
+}
+
 void ABaseWeapon2::Reload()
 {
-	if (ActualReserveAmmo > 0 && AmmoCounter != WeaponMagazinSize)
+	if (ActualReserveAmmo > 0 && AmmoCounter != WeaponMagazinSize && bCanRealod)
 	{
-		Timer += 0.01f;
+		bCanRealod = false;
+		GetWorld()->GetTimerManager().SetTimer(WeaponTimerHandle, this, &ABaseWeapon2::WeaponCanReloeadAgain, ReloadDelay, false);
+
 		Player->PlayerAction = EPlayerAction::Reloading;
 
 		int32 AmmoDifference = WeaponMagazinSize - AmmoCounter;
@@ -220,6 +197,13 @@ void ABaseWeapon2::Reload()
 	{
 
 	}
+}
+
+void ABaseWeapon2::WeaponCanReloeadAgain()
+{
+	bCanRealod = true;
+	Player->PlayerAction = EPlayerAction::Idle;
+	GetWorld()->GetTimerManager().ClearTimer(WeaponTimerHandle);
 }
 
 void ABaseWeapon2::ReplenishAmmo()

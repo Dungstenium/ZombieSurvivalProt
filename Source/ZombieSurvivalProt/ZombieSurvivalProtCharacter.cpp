@@ -197,7 +197,6 @@ void AZombieSurvivalProtCharacter::OnFire()
 	if (bHasAmmo && PlayerAction == EPlayerAction::Idle)
 	{
 		EquipedWeapon->Shoot();
-		PlayerAction = EPlayerAction::Shooting;
 	}
 	else if (!bHasAmmo && PlayerAction == EPlayerAction::Idle)
 	{

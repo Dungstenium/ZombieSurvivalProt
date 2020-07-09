@@ -103,9 +103,9 @@ protected:
 	virtual void BeginPlay();
 		
 	void OnFire();
+	void Reload();
 
 	void MoveForward(float Val);
-
 	void MoveRight(float Val);
 
 	/**
@@ -126,8 +126,6 @@ protected:
 	void StartRunning();
 	void StopRunning();
 
-	void Reload();
-
 	class UTimelineComponent* TimeLine;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -146,22 +144,22 @@ protected:
 	class UCurveFloat* TimelineCurve;
 
 	UPROPERTY()
-		float StandingHeight { 0 };
+	float StandingHeight { 0 };
 
 	UPROPERTY()
-		float CrouchedHeight { 0 };
+	float CrouchedHeight { 0 };
 
 	UPROPERTY(EditAnywhere)
-		float MaxMoveSpeed = 600.0f;
+	float MaxMoveSpeed = 600.0f;
 
 	UPROPERTY(EditAnywhere)
-		float MaxCrouchedSpeed = 240.0f;
+	float MaxCrouchedSpeed = 240.0f;
 
 	UFUNCTION()
-		void TimeLineFloatReturn(float Value);
+	void TimeLineFloatReturn(float Value);
 
 	UFUNCTION()
-		void OnTimeLineFinished();
+	void OnTimeLineFinished();
 
 	//Declare our delegate function to be binded with TimeLineFloatReturn
 	FOnTimelineFloat InterpCrouchFunction{};

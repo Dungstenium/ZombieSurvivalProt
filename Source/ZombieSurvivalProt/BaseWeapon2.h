@@ -12,10 +12,9 @@ class ZOMBIESURVIVALPROT_API ABaseWeapon2 : public AActor
 	GENERATED_BODY()
 	
 private:
-
 	bool bHasAmmo = true;
-
-	float Timer = 0.0f;
+	bool bCanShoot = true;
+	bool bCanRealod = true;
 
 	UPROPERTY(EditAnywhere)
 	float BulletRange{ 3000.0f };
@@ -25,8 +24,6 @@ private:
 
 	UPROPERTY()
 	class AZombieSurvivalProtCharacter* Player;
-
-	void ReduceAmmoPerShot();
 
 	UPROPERTY(EditAnywhere, Category = Gameplay)
 	class UParticleSystem* MuzzleFlash;
@@ -40,12 +37,21 @@ private:
 	UPROPERTY(EditAnywhere, Category = Gameplay)
 	class UMaterialInterface* ImpactDecal;
 
+	FTimerHandle WeaponTimerHandle;
+
+	void ReduceAmmoPerShot();
+	void WeaponCanShootAgain();
+	void WeaponCanReloeadAgain();
+
 protected:
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaSeconds) override;
 
 public:
 	ABaseWeapon2();
+	
+	void Shoot();
+	void Reload();
+	void ReplenishAmmo();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Shooting)
 	class USoundBase* FireSound;
@@ -84,8 +90,4 @@ public:
 	float ReloadDelay = 1.2f;
 
 	bool bIsFullAmmo = true;
-	
-	void Shoot();
-	void Reload();
-	void ReplenishAmmo();
 };
