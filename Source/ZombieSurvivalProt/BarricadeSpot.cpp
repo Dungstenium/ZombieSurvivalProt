@@ -99,14 +99,14 @@ void ABarricadeSpot::UpdateBarricadeLife()
 	{
 		PercentBarricadeLife = ActualBarricadeLife / MaxBarricadeLife;
 
-		if (!InteractableVisualizer->IsVisible())
+		if (!NearbyUIElement->IsVisible())
 		{
-			InteractableVisualizer->SetVisibility(true);
+			NearbyUIElement->SetVisibility(true);
 		}
 	}
-	else if (PercentBarricadeLife >= 1.0f && InteractableVisualizer->IsVisible())
+	else if (PercentBarricadeLife >= 1.0f && NearbyUIElement->IsVisible())
 	{
-		InteractableVisualizer->SetVisibility(false);
+		NearbyUIElement->SetVisibility(false);
 	}
 }
 

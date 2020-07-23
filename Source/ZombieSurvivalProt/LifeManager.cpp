@@ -16,7 +16,7 @@ void ULifeManager::BeginPlay()
 	ActualLife = MaxLife;
 }
 
-void ULifeManager::DealDamage(float Damage)
+void ULifeManager::DealDamage(const float Damage)
 {
 	ActualLife -= Damage;
 
@@ -26,7 +26,7 @@ void ULifeManager::DealDamage(float Damage)
 	}
 }
 
-void ULifeManager::Heal(float Amount)
+void ULifeManager::Heal(const float Amount)
 {
 	ActualLife += Amount;
 }

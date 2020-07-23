@@ -28,10 +28,10 @@ protected:
 			int32 OtherBodyIndex);
 
 	UPROPERTY(EditAnywhere, Category = Properties)
-	class UBillboardComponent* PressPopUp;
+	class UBillboardComponent* NearbyUIElement;
 
 	UPROPERTY(EditAnywhere, Category = Properties)
-	class UBillboardComponent* InteractableVisualizer;
+	class UBillboardComponent* PressUIElement;
 
 	virtual void BeginPlay() override;
 
@@ -42,8 +42,7 @@ protected:
 	class UBoxComponent* Trigger;
 
 public:	
-
 	AInteractable();
 
-	void SetPressPopUpVisible(bool State);
+	void SetPressUIVisible(bool State);
 };

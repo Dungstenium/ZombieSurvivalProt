@@ -26,8 +26,8 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	void DealDamage(float Damage);
-	void Heal(float Amount);
+	void DealDamage(const float Damage);
+	void Heal(const float Amount);
 	float GetLife() const;
 	void Die();
 };

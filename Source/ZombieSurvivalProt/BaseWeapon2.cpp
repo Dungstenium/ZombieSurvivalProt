@@ -19,6 +19,8 @@ ABaseWeapon2::ABaseWeapon2()
 	PrimaryActorTick.bCanEverTick = false;
 
 	FirearmMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
+	FirearmMesh->bCastDynamicShadow = false;
+	FirearmMesh->CastShadow = false;
 	RootComponent = FirearmMesh;
 
 	GuideArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("Arrow"));

@@ -18,11 +18,11 @@ AInteractable::AInteractable()
 	Trigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger"));
 	Trigger->SetupAttachment(StaticMesh);
 
-	PressPopUp = CreateDefaultSubobject<UBillboardComponent>(TEXT("PopUp"));
-	PressPopUp->SetupAttachment(RootComponent);
+	PressUIElement = CreateDefaultSubobject<UBillboardComponent>(TEXT("PopUp"));
+	PressUIElement->SetupAttachment(RootComponent);
 
-	InteractableVisualizer = CreateDefaultSubobject<UBillboardComponent>(TEXT("Visualizer"));
-	InteractableVisualizer->SetupAttachment(RootComponent);
+	NearbyUIElement = CreateDefaultSubobject<UBillboardComponent>(TEXT("Visualizer"));
+	NearbyUIElement->SetupAttachment(RootComponent);
 }
 
 void AInteractable::BeginPlay()
@@ -32,15 +32,15 @@ void AInteractable::BeginPlay()
 	Trigger->OnComponentBeginOverlap.AddDynamic(this, &AInteractable::OnOverlapBegin);
 	Trigger->OnComponentEndOverlap.AddDynamic(this, &AInteractable::OnOverlapEnd);
 	
-	PressPopUp->SetVisibility(false);
-	InteractableVisualizer->SetVisibility(false);
+	PressUIElement->SetVisibility(false);
+	NearbyUIElement->SetVisibility(false);
 }
 
 void AInteractable::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor->IsA<AZombieSurvivalProtCharacter>())
 	{
-		InteractableVisualizer->SetVisibility(true);
+		NearbyUIElement->SetVisibility(true);
 	}
 }
 
@@ -48,12 +48,12 @@ void AInteractable::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Ot
 {
 	if (OtherActor->IsA<AZombieSurvivalProtCharacter>())
 	{
-		InteractableVisualizer->SetVisibility(false);
+		NearbyUIElement->SetVisibility(false);
 	}
 }
 
-void AInteractable::SetPressPopUpVisible(bool State)
+void AInteractable::SetPressUIVisible(bool State)
 {
-	PressPopUp->SetVisibility(State);
+	PressUIElement->SetVisibility(State);
 
 }

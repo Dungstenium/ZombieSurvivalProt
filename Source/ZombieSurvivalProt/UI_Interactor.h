@@ -13,15 +13,12 @@ class ZOMBIESURVIVALPROT_API UUI_Interactor : public UActorComponent
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere)
-		float LineRange = 200.0f;
-
-	class AInteractable* InteractingActor = nullptr;
+	float LineRange = 200.0f;
 
 	UPROPERTY(EditAnywhere)
-		bool bActivateDebugRay = false;
+	bool bActivateDebugRay = false;
 
-public:	
-	UUI_Interactor();
+	class AInteractable* InteractingActor = nullptr;
 
 protected:
 	virtual void BeginPlay() override;
@@ -32,6 +29,7 @@ protected:
 	bool bIsPopUpVisible{ false };
 
 public:	
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	UUI_Interactor();
 		
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 };

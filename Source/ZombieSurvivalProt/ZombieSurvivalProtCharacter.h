@@ -8,7 +8,7 @@
 #include "ZombieSurvivalProtCharacter.generated.h"
 
 UENUM()
-enum class EActiveWeapon : uint8
+enum class ECurrentWeapon : uint8
 {
 	Unarmed,
 	Pistol,
@@ -65,7 +65,6 @@ private:
 	void ChangeToPreviousWeapon();
 
 public:
-	
 	AZombieSurvivalProtCharacter();
 	
 	bool PressedInteractButton() const;
@@ -88,7 +87,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
-	EActiveWeapon ActiveWeapon;
+	ECurrentWeapon CurrentWeapon;
 	EPlayerMoveState PlayerState;
 	EPlayerAction PlayerAction;
 
@@ -98,7 +97,6 @@ public:
 	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
 protected:
-	
 	virtual void BeginPlay();
 		
 	void OnFire();
@@ -160,13 +158,12 @@ protected:
 	UFUNCTION()
 	void OnTimeLineFinished();
 
-	//Declare our delegate function to be binded with TimeLineFloatReturn
+	//Declare our delegate function to be bound with TimeLineFloatReturn
 	FOnTimelineFloat InterpCrouchFunction{};
 
-	//Declare our delegate function to be binded with OnTimeLineFinished()
+	//Declare our delegate function to be bound with OnTimeLineFinished()
 	FOnTimelineEvent TimeLineFinished{};
 
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
-
 };
 

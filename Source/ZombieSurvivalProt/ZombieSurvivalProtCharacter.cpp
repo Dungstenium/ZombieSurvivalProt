@@ -65,7 +65,7 @@ void AZombieSurvivalProtCharacter::BeginPlay()
 		EquipedWeapon->FirearmMesh->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
 	}
 
-	ActiveWeapon = EActiveWeapon::Rifle;
+	CurrentWeapon = ECurrentWeapon::Rifle;
 	PlayerState = EPlayerMoveState::Idle;
 	PlayerAction = EPlayerAction::Idle;
 
@@ -143,14 +143,6 @@ void AZombieSurvivalProtCharacter::SetupPlayerInputComponent(class UInputCompone
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AZombieSurvivalProtCharacter::LookUpAtRate);
 }
 
-void AZombieSurvivalProtCharacter::InteractWithObject()
-{
-	if (PlayerAction == EPlayerAction::Idle)
-	{
-		bPlayerInteracted = true;
-	}
-}
-
 void AZombieSurvivalProtCharacter::ChangeToWeapon1()
 {
 	if (EquipedWeapon != Rifle)
@@ -183,6 +175,14 @@ void AZombieSurvivalProtCharacter::ChangeToPreviousWeapon()
 
 }
 
+void AZombieSurvivalProtCharacter::InteractWithObject()
+{
+	if (PlayerAction == EPlayerAction::Idle)
+	{
+		bPlayerInteracted = true;
+	}
+}
+
 void AZombieSurvivalProtCharacter::DeactivateInteractionWithObject()
 {
 	bPlayerInteracted = false;
@@ -193,7 +193,7 @@ bool AZombieSurvivalProtCharacter::PressedInteractButton() const
 	return bPlayerInteracted;
 }
 
-void AZombieSurvivalProtCharacter::OnFire()
+void AZombieSurvivalProtCharacter::OnFire() 
 {
 	if (PlayerAction == EPlayerAction::Idle)
 	{
@@ -205,7 +205,7 @@ void AZombieSurvivalProtCharacter::OnFire()
 	}
 }
 
-void AZombieSurvivalProtCharacter::Reload()
+void AZombieSurvivalProtCharacter::Reload() 
 {
 	if (PlayerAction == EPlayerAction::Idle)
 	{

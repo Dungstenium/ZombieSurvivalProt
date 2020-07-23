@@ -18,7 +18,6 @@ UUI_Interactor::UUI_Interactor()
 void UUI_Interactor::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 void UUI_Interactor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -28,22 +27,9 @@ void UUI_Interactor::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(OUT PlayerViewPointLocation, OUT PlayerViewPointRotation);
 
 	FVector LineTraceEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * LineRange;
-
-	if (bActivateDebugRay)
-	{
-		DrawDebugLine(
-			GetWorld(),
-			PlayerViewPointLocation, 
-			LineTraceEnd,
-			FColor::Blue,
-			false,
-			0.0f, 
-			0, 
-			5.0f);
-	}
-
 	FHitResult Hit;
 	FCollisionQueryParams TraceParams(FName(""), false, GetOwner());
+
 	GetWorld()->LineTraceSingleByObjectType(
 		OUT Hit,
 		PlayerViewPointLocation,
@@ -62,20 +48,31 @@ void UUI_Interactor::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 			if (!bIsPopUpVisible)
 			{
 				bIsPopUpVisible = true;
-				InteractingActor->SetPressPopUpVisible(bIsPopUpVisible);
+				InteractingActor->SetPressUIVisible(bIsPopUpVisible);
 			}
 
 			UE_LOG(LogTemp, Warning, TEXT("Looking at: %s"), *ActorHit->GetName())
 		}
 	}
-	else
+	else if (bIsPopUpVisible && InteractingActor != nullptr)
 	{
-		if (bIsPopUpVisible && InteractingActor != nullptr)
-		{
 			bIsPopUpVisible = false;
-			InteractingActor->SetPressPopUpVisible(bIsPopUpVisible);
+			InteractingActor->SetPressUIVisible(bIsPopUpVisible);
 			InteractingActor = nullptr;
-		}
+	}
+
+	//show the trace in Editor if activated
+	if (bActivateDebugRay)
+	{
+		DrawDebugLine(
+			GetWorld(),
+			PlayerViewPointLocation, 
+			LineTraceEnd,
+			FColor::Blue,
+			false,
+			0.0f, 
+			0, 
+			5.0f);
 	}
 }
 
