@@ -43,9 +43,9 @@ void AAmmoBox::Tick(float DeltaSeconds)
 				UGameplayStatics::PlaySoundAtLocation(this, RearmSound, GetActorLocation());
 			}
 
-			if (RearmAnimation && Player)
+			if (RearmAnimation)
 			{
-				// Get the animation object for the arms mesh OF THE PLAYER
+				// Get the animation object for the arms mesh of the player
 				UAnimInstance* AnimInstance = Player->GetMesh1P()->GetAnimInstance();
 				if (AnimInstance)
 				{
@@ -59,6 +59,8 @@ void AAmmoBox::Tick(float DeltaSeconds)
 void AAmmoBox::FinishRearming()
 {
 	Player->PlayerAction = EPlayerAction::Idle;
+
+	// If player finished reloading and left the triggerbox. Then deactivate Tick
 	if (!PlayerInReach)
 	{
 		SetActorTickEnabled(false);
@@ -71,7 +73,11 @@ void AAmmoBox::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Other
 
 	if (OtherActor->IsA<AZombieSurvivalProtCharacter>())
 	{
-		Player = Cast<AZombieSurvivalProtCharacter>(OtherActor);
+		if (!Player)
+		{
+			Player = Cast<AZombieSurvivalProtCharacter>(OtherActor);
+		}
+
 		PlayerInReach = true;
 		SetActorTickEnabled(true);
 	}

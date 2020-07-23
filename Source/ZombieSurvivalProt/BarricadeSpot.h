@@ -18,28 +18,31 @@ class ZOMBIESURVIVALPROT_API ABarricadeSpot : public AInteractable
 		ABarricadeSpot();
 
 	UFUNCTION()
-		virtual void OnOverlapEnd(
+	virtual void OnOverlapEnd(
 		class UPrimitiveComponent* OverlappedComp,
 		class AActor* OtherActor,
 		class UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex) override;
 
 	UFUNCTION()
-		virtual void OnOverlapBegin(
+	virtual void OnOverlapBegin(
 		class UPrimitiveComponent* OverlappedComp,
 		class AActor* OtherActor,
 		class UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex, bool bFromSweep,
 		const FHitResult& SweepResult) override;
 
+	bool bFinishedAnimation[5];
+	bool bFinishedRotationLap[5];
+	bool bFinishedAnimatingActualPlank = true;
+	bool bFinishedAnimatingPreviousPlank = true;
+
 	float MaxBarricadeLife = 100.0f;
 	float ActualBarricadeLife;
 	float PercentBarricadeLife;
-	bool bFinishedAnimation[5];
-	bool bFinishedRotationLap[5];
-	bool bFinishedActualPlank = true;
-	bool bFinishedPreviousPlank = true;
 
+	UPROPERTY(EditAnywhere, Category = Properties)
+	float HealingSpeed = 10.0f;
 
 	UPROPERTY(EditAnywhere, Category = Properties)
 	float RotationSpeed = 5.0f;

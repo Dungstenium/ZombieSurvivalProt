@@ -65,16 +65,16 @@ void ABarricadeSpot::Tick(float DeltaSeconds)
 
 	if (Player)
 	{
-		if (Player->PlayerAction == EPlayerAction::Idle && Player->PressedInteractButton() && bPlayerInReach && PercentBarricadeLife < 1.0f)
+		if (Player->PressedInteractButton() && Player->PlayerAction == EPlayerAction::Idle && bPlayerInReach && PercentBarricadeLife < 1.0f)
 		{
-			ActualBarricadeLife += DeltaSeconds * 10.0f;
+			ActualBarricadeLife += DeltaSeconds * HealingSpeed;
 
 			bIsBuildingBarricade = true;
 			Player->PlayerAction = EPlayerAction::Interacting;
 		}
-		else if (Player->PlayerAction == EPlayerAction::Interacting && bIsBuildingBarricade && Player->PressedInteractButton() && bPlayerInReach && PercentBarricadeLife < 1.0f)
+		else if (Player->PressedInteractButton() && Player->PlayerAction == EPlayerAction::Interacting && bIsBuildingBarricade && bPlayerInReach && PercentBarricadeLife < 1.0f)
 		{
-			ActualBarricadeLife += DeltaSeconds * 10.0f;
+			ActualBarricadeLife += DeltaSeconds * HealingSpeed;
 		}
 		else if (!Player->PressedInteractButton() && bPlayerInReach && bIsBuildingBarricade)
 		{
@@ -86,7 +86,7 @@ void ABarricadeSpot::Tick(float DeltaSeconds)
 
 		UpdatePlanks(DeltaSeconds);
 
-		if (!bPlayerInReach && bFinishedActualPlank && bFinishedPreviousPlank)
+		if (!bPlayerInReach && bFinishedAnimatingActualPlank && bFinishedAnimatingPreviousPlank)
 		{
 			SetActorTickEnabled(false);
 		}
@@ -112,7 +112,7 @@ void ABarricadeSpot::UpdateBarricadeLife()
 
 void ABarricadeSpot::UpdatePlanks(float DeltaSeconds)
 {
-	if (PercentBarricadeLife >= 0.2f && InitialWoodPlank && !InitialWoodPlank->IsVisible())
+	if (PercentBarricadeLife >= 0.2f && !InitialWoodPlank->IsVisible() && InitialWoodPlank)
 	{
 		ActivateBarricade(0, InitialWoodPlank);
 	}
@@ -120,39 +120,34 @@ void ABarricadeSpot::UpdatePlanks(float DeltaSeconds)
 	{
 		AnimateBarricade(DeltaSeconds, 0, InitialWoodPlank);
 	}
-	else if (PercentBarricadeLife >= 0.4f && WoodPlank01 && !WoodPlank01->IsVisible())
+	else if (PercentBarricadeLife >= 0.4f && !WoodPlank01->IsVisible() && WoodPlank01)
 	{
 		ActivateBarricade(1, WoodPlank01);
-		bFinishedPreviousPlank = true;
 	}
 	else if (PercentBarricadeLife < 0.6f && WoodPlank01->IsVisible())
 	{
 		AnimateBarricade(DeltaSeconds, 1, WoodPlank01);
 	}
-	else if (PercentBarricadeLife >= 0.6f && WoodPlank02 && !WoodPlank02->IsVisible())
+	else if (PercentBarricadeLife >= 0.6f && !WoodPlank02->IsVisible() && WoodPlank02)
 	{
 		ActivateBarricade(2, WoodPlank02);
-		bFinishedPreviousPlank = true;
 	}
 	else if (PercentBarricadeLife < 0.8f && WoodPlank02->IsVisible())
 	{
 		AnimateBarricade(DeltaSeconds, 2, WoodPlank02);
 	}
-	else if (PercentBarricadeLife >= 0.8f && WoodPlank03 && !WoodPlank03->IsVisible())
+	else if (PercentBarricadeLife >= 0.8f && !WoodPlank03->IsVisible() && WoodPlank03)
 	{
 		ActivateBarricade(3, WoodPlank03);
-		bFinishedPreviousPlank = true;
 	}
 	else if (PercentBarricadeLife < 1.0f && WoodPlank03->IsVisible())
 	{
 		AnimateBarricade(DeltaSeconds, 3, WoodPlank03);
 	}
-	else if (PercentBarricadeLife >= 1.0f && WoodPlank04 && !WoodPlank04->IsVisible())
+	else if (PercentBarricadeLife >= 1.0f && !WoodPlank04->IsVisible() && WoodPlank04)
 	{
 		ActivateBarricade(4, WoodPlank04);
-		bFinishedPreviousPlank = true;
 
-		InteractableVisualizer->SetVisibility(false);
 		Player->PlayerAction = EPlayerAction::Idle;
 	}
 	else if (PercentBarricadeLife < 1.2f && WoodPlank04->IsVisible())
@@ -167,12 +162,17 @@ void ABarricadeSpot::ActivateBarricade(int32 i, UStaticMeshComponent* ActualBarr
 	ActualBarricade->SetCollisionProfileName(FName("BlockAllDynamic"));
 
 	ActualBarricade->SetWorldLocation(EndingPosition[i] - FVector(0.0f, -75.0f, 0.0f));
-
 	ActualBarricade->AddWorldRotation(FRotator(RotationSpeed, 0.0f, 0.0f));
 
 	UGameplayStatics::PlaySoundAtLocation(this, PlaceBarricadeSound, GetActorLocation());
 
-	bFinishedActualPlank = false;
+	//If is not the first plank, consider the previous plank to have his animation finished
+	if (i != 0)
+	{
+		bFinishedAnimatingPreviousPlank = true;
+	}
+
+	bFinishedAnimatingActualPlank = false;
 }
 
 void ABarricadeSpot::AnimateBarricade(float DeltaSeconds, int32 i, UStaticMeshComponent* ActualBarricade)
@@ -183,8 +183,8 @@ void ABarricadeSpot::AnimateBarricade(float DeltaSeconds, int32 i, UStaticMeshCo
 		{
 			bFinishedAnimation[i] = true;
 			GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayCameraShake(ShakeCamera, 1.0f);
-			bFinishedActualPlank = true;
-			bFinishedPreviousPlank = true;
+			bFinishedAnimatingActualPlank = true;
+			bFinishedAnimatingPreviousPlank = true;
 		}
 		else if (!bFinishedAnimation[i])
 		{
@@ -224,7 +224,7 @@ void ABarricadeSpot::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* O
 	{
 		bPlayerInReach = false;
 
-		if (bFinishedActualPlank && bFinishedPreviousPlank)
+		if (bFinishedAnimatingActualPlank && bFinishedAnimatingPreviousPlank)
 		{
 			SetActorTickEnabled(false);
 		}
