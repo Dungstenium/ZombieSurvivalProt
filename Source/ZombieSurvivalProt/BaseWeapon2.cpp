@@ -46,22 +46,19 @@ void ABaseWeapon2::BeginPlay()
 
 void ABaseWeapon2::Shoot()
 {
-	if (bHasAmmo && bCanShoot)
+	if (!bIsClipEmpty)
 	{
-		bCanShoot = false;
-		GetWorld()->GetTimerManager().SetTimer(WeaponTimerHandle, this, &ABaseWeapon2::WeaponCanShootAgain, ShotDelay, false);
-
-		ReduceAmmoPerShot();
-
 		Player->PlayerAction = EPlayerAction::Shooting;
+
+		GetWorldTimerManager().SetTimer(WeaponTimerHandle, this, &ABaseWeapon2::WeaponCanShootAgain, ShotDelay, false);
 
 		const FRotator SpawnRotation = GuideArrow->GetComponentRotation();
 		const FVector SpawnLocation = GuideArrow->GetComponentLocation();
+		FCollisionQueryParams TraceParams(FName(""), false, GetOwner());
 		FHitResult Hit;
 
 		FVector LineTraceEnd = SpawnLocation + SpawnRotation.Vector() * BulletRange;
 
-		FCollisionQueryParams TraceParams(FName(""), false, GetOwner());
 		bool HitSomething = GetWorld()->LineTraceSingleByObjectType(
 			OUT Hit,
 			SpawnLocation,
@@ -79,17 +76,19 @@ void ABaseWeapon2::Shoot()
 			
 				if (ActorHit->GetClass()->IsChildOf(ASkeletalMeshActor::StaticClass()) && BulletImpactOnZombies)
 				{
+					//TODO: if hit a zombie, deal damage and spawn blood effect
 					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactOnZombies, Hit.Location, Hit.Normal.Rotation(), true);
 				}
 				else if (BulletImpactOnWalls && ImpactDecal)
 				{
 					UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactOnWalls, Hit.Location, Hit.Normal.Rotation(), true);
 
-					FVector DecalSize = FVector(FMath::RandRange(7.0f, 25.0f));
+					FVector DecalSize = FVector(FMath::RandRange(7.0f, 12.0f));
 					UGameplayStatics::SpawnDecalAttached(ImpactDecal,
 						DecalSize,
 						Hit.GetComponent(),
-						NAME_None, Hit.Location, 
+						NAME_None,
+						Hit.Location, 
 						Hit.Normal.Rotation(),
 						EAttachLocation::KeepWorldPosition,
 						60.0f);
@@ -97,25 +96,9 @@ void ABaseWeapon2::Shoot()
 			}
 		}
 
-		if (FireSound)
-		{
-			UGameplayStatics::PlaySoundAtLocation(this, FireSound, SpawnLocation);
-		}
-
-		if (FireAnimation && Player)
-		{
-			// Get the animation object for the arms mesh OF THE PLAYER
-			UAnimInstance* AnimInstance = Player->GetMesh1P()->GetAnimInstance();
-			if (AnimInstance)
-			{
-				AnimInstance->Montage_Play(FireAnimation, 1.f);
-			}
-		}
-
-		if (MuzzleFlash)
-		{
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SpawnLocation, SpawnRotation, true);
-		}
+		SpawnSoundAndAnimate(SpawnLocation, FireSound, FireAnimation);
+		SpawnMuzzleFlash(SpawnLocation, SpawnRotation);
+		ReduceAmmoPerShot();
 
 		DrawDebugLine(
 			GetWorld(),
@@ -141,28 +124,51 @@ void ABaseWeapon2::ReduceAmmoPerShot()
 	{
 		bIsFullAmmo = false;
 	}
-
-	if (AmmoCounter <= 0)
+	else if (AmmoCounter <= 0)
 	{
-		bHasAmmo = false;
+		bIsClipEmpty = true;
 	}
 }
 
 void ABaseWeapon2::WeaponCanShootAgain()
 {
-	bCanShoot = true;
 	Player->PlayerAction = EPlayerAction::Idle;
-	GetWorld()->GetTimerManager().ClearTimer(WeaponTimerHandle);
+	GetWorldTimerManager().ClearTimer(WeaponTimerHandle);
+}
+
+void ABaseWeapon2::SpawnSoundAndAnimate(const FVector& SpawnLocation, USoundBase* Sound, UAnimMontage* Animation)
+{
+	if (Sound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, Sound, SpawnLocation);
+	}
+
+	if (Animation && Player)
+	{
+		// Get the animation object for the arms mesh OF THE PLAYER
+		UAnimInstance* AnimInstance = Player->GetMesh1P()->GetAnimInstance();
+		if (AnimInstance)
+		{
+			AnimInstance->Montage_Play(Animation, 1.f);
+		}
+	}
+}
+
+void ABaseWeapon2::SpawnMuzzleFlash(const FVector& SpawnLocation, const FRotator& SpawnRotation)
+{
+	if (MuzzleFlash)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SpawnLocation, SpawnRotation, true);
+	}
 }
 
 void ABaseWeapon2::Reload()
 {
-	if (ActualReserveAmmo > 0 && AmmoCounter != WeaponMagazinSize && bCanRealod)
+	if (ActualReserveAmmo > 0 && AmmoCounter != WeaponMagazinSize)
 	{
-		bCanRealod = false;
-		GetWorld()->GetTimerManager().SetTimer(WeaponTimerHandle, this, &ABaseWeapon2::WeaponCanReloeadAgain, ReloadDelay, false);
-
 		Player->PlayerAction = EPlayerAction::Reloading;
+
+		GetWorldTimerManager().SetTimer(WeaponTimerHandle, this, &ABaseWeapon2::WeaponCanReloadAgain, ReloadDelay, false);
 
 		int32 AmmoDifference = WeaponMagazinSize - AmmoCounter;
 
@@ -177,33 +183,16 @@ void ABaseWeapon2::Reload()
 			ActualReserveAmmo -= AmmoDifference;
 		}
 
-		if (ReloadSound)
-		{
-			UGameplayStatics::PlaySoundAtLocation(this, ReloadSound, GuideArrow->GetComponentLocation());
-		}
+		SpawnSoundAndAnimate(GuideArrow->GetComponentLocation(), ReloadSound, ReloadAnimation);
 
-		if (ReloadAnimation && Player)
-		{
-			// Get the animation object for the arms mesh OF THE PLAYER
-			UAnimInstance* AnimInstance = Player->GetMesh1P()->GetAnimInstance();
-			if (AnimInstance)
-			{
-				AnimInstance->Montage_Play(ReloadAnimation, 1.f);
-			}
-		}
-		bHasAmmo = true;
-	}
-	else
-	{
-
+		bIsClipEmpty = false;
 	}
 }
 
-void ABaseWeapon2::WeaponCanReloeadAgain()
+void ABaseWeapon2::WeaponCanReloadAgain()
 {
-	bCanRealod = true;
 	Player->PlayerAction = EPlayerAction::Idle;
-	GetWorld()->GetTimerManager().ClearTimer(WeaponTimerHandle);
+	GetWorldTimerManager().ClearTimer(WeaponTimerHandle);
 }
 
 void ABaseWeapon2::ReplenishAmmo()

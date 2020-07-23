@@ -12,9 +12,7 @@ class ZOMBIESURVIVALPROT_API ABaseWeapon2 : public AActor
 	GENERATED_BODY()
 	
 private:
-	bool bHasAmmo = true;
-	bool bCanShoot = true;
-	bool bCanRealod = true;
+	bool bIsClipEmpty = false;
 
 	UPROPERTY(EditAnywhere)
 	float BulletRange{ 3000.0f };
@@ -41,7 +39,9 @@ private:
 
 	void ReduceAmmoPerShot();
 	void WeaponCanShootAgain();
-	void WeaponCanReloeadAgain();
+	void WeaponCanReloadAgain();
+	void SpawnMuzzleFlash(const FVector& SpawnLocation, const FRotator& SpawnRotation);
+	void SpawnSoundAndAnimate(const FVector& SpawnLocation, USoundBase* Sound, UAnimMontage* Animation);
 
 protected:
 	virtual void BeginPlay() override;

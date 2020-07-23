@@ -50,7 +50,6 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FirstPersonCameraComponent;
 
-	bool bHasAmmo = true;
 	bool bPlayerInteracted = false;
 
 	int32 EquipedMaxAmmo{ 30 };

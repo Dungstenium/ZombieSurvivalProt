@@ -195,11 +195,11 @@ bool AZombieSurvivalProtCharacter::PressedInteractButton() const
 
 void AZombieSurvivalProtCharacter::OnFire()
 {
-	if (bHasAmmo && PlayerAction == EPlayerAction::Idle)
+	if (PlayerAction == EPlayerAction::Idle)
 	{
 		EquipedWeapon->Shoot();
 	}
-	else if (!bHasAmmo && PlayerAction == EPlayerAction::Idle)
+	else
 	{
 		Reload();
 	}
