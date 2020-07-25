@@ -4,6 +4,7 @@
 #include "Interactable.h"
 #include "Components/BillboardComponent.h" 
 #include "Components/BoxComponent.h" 
+#include "Components/SlateWrapperTypes.h" 
 #include "Components/StaticMeshComponent.h"
 #include "ZombieSurvivalProtCharacter.h"
 
