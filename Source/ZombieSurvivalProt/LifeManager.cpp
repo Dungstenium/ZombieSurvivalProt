@@ -19,7 +19,7 @@ void ULifeManager::BeginPlay()
 void ULifeManager::DealDamage(const float Damage)
 {
 	ActualLife -= Damage;
-
+	
 	if (ActualLife <= 0.0f)
 	{
 		Die();
